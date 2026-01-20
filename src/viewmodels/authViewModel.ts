@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { ApiService } from '../api/ApiService';
-import { User, UserRole } from '../models/User';
+import { ApiService } from '../api/apiService';
+import { User, UserRole } from '../models/user';
 
 export const useAuthViewModel = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
-  const login = async (email: string, password: string, role: UserRole) => {
+  const login = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await ApiService.login(email, password, role);
+      const response = await ApiService.login(email, password);
       setUser(response);
     } catch (err: any) {
       setError(err);
@@ -40,4 +40,3 @@ export const useAuthViewModel = () => {
 
   return { user, loading, error, login, register };
 };
-

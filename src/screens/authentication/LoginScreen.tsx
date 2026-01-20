@@ -7,32 +7,37 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import Colors from '../../constants/Colors';
-import CustomButton from '../../components/CustomButton';
-import { UserRole } from '../../models/User';
-import { useAuthViewModel } from '../../viewmodels/AuthViewModel';
+import Colors from '../../constants/colors';
+import CustomButton from '../../components/customButton';
+import { useAuthViewModel } from '../../viewmodels/authViewModel';
 import { isEmailValid, isPasswordValid } from '../../utils/validators';
+import { UserRole } from '../../models/user';
 
 const LoginScreen = ({ navigation }: any) => {
   const { login, loading, error, user } = useAuthViewModel();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>(UserRole.PARTICIPANT);
+
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    const errorMsg = isPasswordValid(text);
+    setPasswordError(errorMsg);
+  };
 
   const handleLogin = async () => {
-    if (!isEmailValid(email)) {
-      alert('Please enter a valid email');
-      return;
-    }
+    const emailError = isEmailValid(email);
+    if (emailError) { alert(emailError); return; }
 
-    if (!isPasswordValid(password)) {
-      alert('Password must be at least 6 characters');
-      return;
-    }
+    const passError = isPasswordValid(password);
+    if (passError) { setPasswordError(passError); return; }
 
-    await login(email, password, role);
+    await login(email, password);
   };
+
+  const isFormValid = !isEmailValid(email) && !isPasswordValid(password);
 
   useEffect(() => {
     if (!user) return;
@@ -44,14 +49,17 @@ const LoginScreen = ({ navigation }: any) => {
       case UserRole.ORGANIZER:
         navigation.replace('OrganizerHome');
         break;
-      default:
+      case UserRole.PARTICIPANT:
         navigation.replace('ParticipantHome');
+        break;
+      default:
+        navigation.replace('Login');
     }
   }, [user, navigation]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Sports Carnival Management System</Text>
 
       <TextInput
         placeholder="Email"
@@ -68,38 +76,20 @@ const LoginScreen = ({ navigation }: any) => {
         placeholderTextColor={Colors.gray}
         style={styles.input}
         value={password}
-        onChangeText={setPassword}
+        onChangeText={handlePasswordChange}
         secureTextEntry
       />
-
-      <View style={styles.roleContainer}>
-        {Object.values(UserRole).map(r => (
-          <TouchableOpacity
-            key={r}
-            style={[
-              styles.roleButton,
-              role === r && styles.roleSelected,
-            ]}
-            onPress={() => setRole(r)}
-          >
-            <Text
-              style={[
-                styles.roleText,
-                role === r && styles.roleTextSelected,
-              ]}
-            >
-              {r.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
+      {passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
       {error && <Text style={styles.error}>{error}</Text>}
 
       {loading ? (
         <ActivityIndicator size="large" color={Colors.primary} />
       ) : (
-        <CustomButton title="Login" onPress={handleLogin} />
+        <CustomButton
+          title="Login"
+          onPress={handleLogin}
+          disabled={!isFormValid}
+        />
       )}
 
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -115,61 +105,43 @@ export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    backgroundColor: Colors.white,
+      flex: 1,
+      padding: 20,
+      justifyContent: 'center',
+      backgroundColor: Colors.white
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 24,
-    textAlign: 'center',
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: Colors.primary,
+      marginBottom: 24,
+      textAlign: 'center'
   },
   input: {
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
+      borderWidth: 1,
+      borderColor: Colors.gray,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 12
   },
-  roleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  roleButton: {
-    flex: 1,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    borderRadius: 8,
-    marginHorizontal: 4,
-    alignItems: 'center',
-  },
-  roleSelected: {
-    backgroundColor: Colors.primary,
-  },
-  roleText: {
-    color: Colors.gray,
-  },
-  roleTextSelected: {
-    color: Colors.white,
-    fontWeight: 'bold',
+  fieldError: {
+      color: Colors.error,
+      fontSize: 12,
+      marginTop: -6,
+      marginBottom: 10
   },
   error: {
-    color: Colors.error,
-    marginBottom: 12,
-    textAlign: 'center',
+      color: Colors.error,
+      marginBottom: 12,
+      textAlign: 'center'
   },
   registerText: {
-    marginTop: 16,
-    textAlign: 'center',
-    color: Colors.gray,
+      marginTop: 16,
+      textAlign: 'center',
+      color: Colors.gray
   },
   link: {
-    color: Colors.primary,
-    fontWeight: 'bold',
+      color: Colors.primary,
+      fontWeight: 'bold'
   },
 });

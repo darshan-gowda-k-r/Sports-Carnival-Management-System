@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User } from '../models/User';
+import { User } from '../models/user';
 
 export const useUserViewModel = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
