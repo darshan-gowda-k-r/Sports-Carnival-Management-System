@@ -3,12 +3,14 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   ActivityIndicator,
+  StyleSheet,
   TouchableOpacity,
 } from 'react-native';
 import Colors from '../../constants/colors';
 import CustomButton from '../../components/customButton';
+import { validationStrings } from '../../constants/validationStrings';
+import styles from './LoginScreenStyle';
 import { useAuthViewModel } from '../../viewmodels/authViewModel';
 import { isEmailValid, isPasswordValid } from '../../utils/validators';
 import { UserRole } from '../../models/user';
@@ -29,10 +31,16 @@ const LoginScreen = ({ navigation }: any) => {
 
   const handleLogin = async () => {
     const emailError = isEmailValid(email);
-    if (emailError) { alert(emailError); return; }
+    if (emailError) {
+        alert(emailError);
+        return;
+    }
 
     const passError = isPasswordValid(password);
-    if (passError) { setPasswordError(passError); return; }
+    if (passError) {
+        setPasswordError(passError);
+        return;
+    }
 
     await login(email, password);
   };
@@ -59,7 +67,7 @@ const LoginScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sports Carnival Management System</Text>
+      <Text style={styles.title}>{validationStrings.TITLE}</Text>
 
       <TextInput
         placeholder="Email"
@@ -92,56 +100,14 @@ const LoginScreen = ({ navigation }: any) => {
         />
       )}
 
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.registerText}>
-          Don’t have an account? <Text style={styles.link}>Register</Text>
+      <Text style={styles.registerText}>
+        Don’t have an account?{' '}
+        <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
+            Register
         </Text>
-      </TouchableOpacity>
+      </Text>
     </View>
   );
 };
 
 export default LoginScreen;
-
-const styles = StyleSheet.create({
-  container: {
-      flex: 1,
-      padding: 20,
-      justifyContent: 'center',
-      backgroundColor: Colors.white
-  },
-  title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      color: Colors.primary,
-      marginBottom: 24,
-      textAlign: 'center'
-  },
-  input: {
-      borderWidth: 1,
-      borderColor: Colors.gray,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 12
-  },
-  fieldError: {
-      color: Colors.error,
-      fontSize: 12,
-      marginTop: -6,
-      marginBottom: 10
-  },
-  error: {
-      color: Colors.error,
-      marginBottom: 12,
-      textAlign: 'center'
-  },
-  registerText: {
-      marginTop: 16,
-      textAlign: 'center',
-      color: Colors.gray
-  },
-  link: {
-      color: Colors.primary,
-      fontWeight: 'bold'
-  },
-});

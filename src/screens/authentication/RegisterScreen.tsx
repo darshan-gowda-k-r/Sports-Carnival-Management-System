@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity,
-} from 'react-native';
+  View, Text, TextInput, ActivityIndicator, TouchableOpacity, StyleSheet,
+  } from 'react-native';
 import Colors from '../../constants/colors';
 import CustomButton from '../../components/customButton';
+import styles from './RegisterScreenStyle';
+import { validationStrings } from '../../constants/validationStrings';
 import { useAuthViewModel } from '../../viewmodels/authViewModel';
 import { isNameValid, isEmailValid, isPasswordValid } from '../../utils/validators';
 import { UserRole } from '../../models/user';
@@ -29,13 +31,25 @@ const RegisterScreen = ({ navigation }: any) => {
   };
 
   const handleRegister = async () => {
-    const nError = isNameValid(name); if (nError) { setNameError(nError); return; }
-    const eError = isEmailValid(email); if (eError) { alert(eError); return; }
-    const pError = isPasswordValid(password); if (pError) { setPasswordError(pError); return; }
+    const nError = isNameValid(name);
+    if (nError) {
+        setNameError(nError);
+        return;
+    }
+    const eError = isEmailValid(email);
+    if (eError) {
+        alert(eError);
+        return;
+    }
+    const pError = isPasswordValid(password);
+    if (pError) {
+        setPasswordError(pError);
+        return;
+    }
 
     await register(name, email, password, role);
-    alert('Registration successful. Please login.');
-    navigation.replace('Login');
+    alert(validationStrings.REGISTRATION_SUCCESS);
+    navigation.navigate('Login');
   };
 
   const isFormValid =
@@ -45,19 +59,41 @@ const RegisterScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sports Carnival Management System</Text>
+      <Text style={styles.title}>{validationStrings.TITLE}</Text>
 
-      <TextInput placeholder="Name" style={styles.input} value={name} onChangeText={handleNameChange} />
+      <TextInput
+        placeholder="Name"
+        style={styles.input}
+        value={name}
+        onChangeText={handleNameChange}
+      />
       {nameError && <Text style={styles.fieldError}>{nameError}</Text>}
 
-      <TextInput placeholder="Email" style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+      <TextInput
+        placeholder="Email"
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
-      <TextInput placeholder="Password" style={styles.input} secureTextEntry value={password} onChangeText={handlePasswordChange} />
+      <TextInput
+        placeholder="Password"
+        style={styles.input}
+        secureTextEntry
+        value={password}
+        onChangeText={handlePasswordChange}
+      />
       {passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
 
       <View style={styles.roleContainer}>
         {[UserRole.ORGANIZER, UserRole.PARTICIPANT].map(r => (
-          <TouchableOpacity key={r} style={[styles.roleButton, role === r && styles.roleSelected]} onPress={() => setRole(r)}>
+          <TouchableOpacity
+            key={r}
+            style={[styles.roleButton, role === r && styles.roleSelected]}
+            onPress={() => setRole(r)}
+          >
             <Text style={[styles.roleText, role === r && styles.roleTextSelected]}>{r.toUpperCase()}</Text>
           </TouchableOpacity>
         ))}
@@ -75,78 +111,14 @@ const RegisterScreen = ({ navigation }: any) => {
         />
       )}
 
-      <TouchableOpacity onPress={() => navigation.replace('Login')}>
-        <Text style={styles.loginText}>Already have an account? <Text style={styles.link}>Login</Text></Text>
-      </TouchableOpacity>
+      <Text style={styles.loginText}>
+        Already have an account?{' '}
+        <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
+            Login
+        </Text>
+      </Text>
     </View>
   );
 };
 
 export default RegisterScreen;
-
-const styles = StyleSheet.create({
-  container: {
-      flex: 1,
-      padding: 20,
-      justifyContent: 'center',
-      backgroundColor: Colors.white
-  },
-  title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      color: Colors.primary,
-      marginBottom: 20,
-      textAlign: 'center'
-  },
-  input: {
-      borderWidth: 1,
-      borderColor: Colors.gray,
-      padding: 12,
-      borderRadius: 8,
-      marginVertical: 10
-  },
-  fieldError: {
-      color: Colors.error,
-      fontSize: 12,
-      marginTop: -6,
-      marginBottom: 10
-  },
-  roleContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 16
-  },
-  roleButton: {
-      flex: 1,
-      padding: 10,
-      borderWidth: 1,
-      borderColor: Colors.gray,
-      borderRadius: 8,
-      marginHorizontal: 4,
-      alignItems: 'center'
-  },
-  roleSelected: {
-      backgroundColor: Colors.primary
-  },
-  roleText: {
-      color: Colors.gray
-  },
-  roleTextSelected: {
-      color: Colors.white,
-      fontWeight: 'bold'
-  },
-  error: {
-      color: Colors.error,
-      marginBottom: 12,
-      textAlign: 'center'
-  },
-  loginText: {
-      marginTop: 16,
-      textAlign: 'center',
-      color: Colors.gray
-  },
-  link: {
-      color: Colors.primary,
-      fontWeight: 'bold'
-  },
-});

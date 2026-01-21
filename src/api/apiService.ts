@@ -1,34 +1,27 @@
 import { User, UserRole } from '../models/user';
 import { isPasswordValid } from '../utils/validators';
+import { validationStrings } from '../constants/validationStrings';
 
-const ADMIN_EMAIL = 'admin@gmail.com';
-
-const adminUser: User & { password: string } = {
-  id: 1,
-  name: 'Admin User',
-  email: ADMIN_EMAIL,
-  password: '@Admin12345',
-  role: UserRole.ADMIN,
-};
-
-const dynamicUsers: (User & { password: string })[] = [];
+const dynamicUsers: (User & { password: string })[] = [
+  {
+    id: 1,
+    name: 'Admin User',
+    email: 'admin@gmail.com',
+    password: 'Admin@12345',
+    role: UserRole.ADMIN,
+  },
+];
 
 export const ApiService = {
   login: async (email: string, password: string): Promise<User> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const normalizedEmail = email.toLowerCase();
-
-        if (normalizedEmail === ADMIN_EMAIL && password === adminUser.password) {
-          const { password: _, ...adminData } = adminUser;
-          resolve(adminData);
-          return;
-        }
-
-        const found = dynamicUsers.find( u => u.email.toLowerCase() === normalizedEmail && u.password === password );
+        const found = dynamicUsers.find(
+          u => u.email === email && u.password === password
+        );
 
         if (!found) {
-          reject('Invalid credentials');
+          reject(validationStrings.INVALID_CREDENTIALS);
           return;
         }
 
@@ -42,41 +35,27 @@ export const ApiService = {
     name: string,
     email: string,
     password: string,
-    role: UserRole
+    role: UserRole.ORGANIZER | UserRole.PARTICIPANT
   ): Promise<User> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const normalizedEmail = email.toLowerCase();
-
-        if (normalizedEmail === ADMIN_EMAIL) {
-          reject('This email is reserved for admin');
-          return;
-        }
-
-        if (role === UserRole.ADMIN) {
-          reject('Admin registration is not allowed');
-          return;
-        }
-
         const passwordError = isPasswordValid(password);
         if (passwordError) {
           reject(passwordError);
           return;
         }
 
-        const exists = dynamicUsers.some(
-          u => u.email.toLowerCase() === normalizedEmail
-        );
+        const exists = dynamicUsers.some(u => u.email === email);
 
         if (exists) {
-          reject('Email already registered');
+          reject(validationStrings.EMAIL_EXISTS);
           return;
         }
 
         const newUser: User & { password: string } = {
-          id: dynamicUsers.length + 2,
+          id: dynamicUsers.length + 1,
           name,
-          email: normalizedEmail,
+          email: email,
           password,
           role,
         };
