@@ -1,22 +1,41 @@
-import Colors from '../../constants/colors';
 import { StyleSheet } from 'react-native';
+import Colors from '../../constants/colors';
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.Background_color,
+  },
+  scrollContainer: {
+    padding: 20,
+    paddingBottom: 40,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 30,
+    fontWeight: '700',
     color: Colors.primary,
+    marginBottom: 25,
+    textAlign: 'center',
   },
-  subtitle: {
-    marginTop: 10,
-    color: Colors.gray,
+  card: {
+    backgroundColor: Colors.white,
+    paddingVertical: 20,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    marginBottom: 18,
+    shadowColor: Colors.shadow,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  cardText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.participantCardText,
+  },
+  cardPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
   },
 });
-
-export default styles;

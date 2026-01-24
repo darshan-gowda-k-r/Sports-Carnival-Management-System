@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, ActivityIndicator, TouchableOpacity, StyleSheet,
+  View, Text, TextInput, ActivityIndicator, TouchableOpacity, Image,
   } from 'react-native';
 import Colors from '../../constants/colors';
 import CustomButton from '../../components/customButton';
@@ -19,11 +19,16 @@ const RegisterScreen = ({ navigation }: any) => {
   const [role, setRole] = useState<UserRole>(UserRole.PARTICIPANT);
 
   const [nameError, setNameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const handleNameChange = (text: string) => {
     setName(text);
     setNameError(isNameValid(text));
+  };
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    setEmailError(isEmailValid(text));
   };
   const handlePasswordChange = (text: string) => {
     setPassword(text);
@@ -38,8 +43,8 @@ const RegisterScreen = ({ navigation }: any) => {
     }
     const eError = isEmailValid(email);
     if (eError) {
-        alert(eError);
-        return;
+        setEmailError(eError);
+        return; 
     }
     const pError = isPasswordValid(password);
     if (pError) {
@@ -59,6 +64,14 @@ const RegisterScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={{
+          uri: 'https://img.pikbest.com/png-images/20241031/minimalist-sports-logo-vector-illustration-on-transparent-background_11037606.png!sw800',
+        }}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+
       <Text style={styles.title}>{validationStrings.TITLE}</Text>
 
       <TextInput
@@ -73,10 +86,11 @@ const RegisterScreen = ({ navigation }: any) => {
         placeholder="Email"
         style={styles.input}
         value={email}
-        onChangeText={setEmail}
+        onChangeText={handleEmailChange}
         keyboardType="email-address"
         autoCapitalize="none"
       />
+      {emailError && <Text style={styles.fieldError}>{emailError}</Text>}
 
       <TextInput
         placeholder="Password"

@@ -35,23 +35,12 @@ export const isEmailValid = (email: string): string | null => {
 };
 
 export const isPasswordValid = (password: string): string | null => {
+  
   if (!password) {
     return validationStrings.PASSWORD_REQUIRED;
   }
-  if (password.length < 8) {
-    return validationStrings.PASS_MIN_LENGTH;
-  }
-  if (!/[A-Z]/.test(password)) {
-    return validationStrings.PASS_UPPER_REQUIRED;
-  }
-  if (!/[a-z]/.test(password)) {
-    return validationStrings.PASS_LOWER_REQUIRED;
-  }
-  if (!/\d/.test(password)) {
-    return validationStrings.PASS_DIGIT_REQUIRED;
-  }
-  if (!/[@$!%*?&]/.test(password)) {
-    return validationStrings.PASS_SPECIAL_REQUIRED;
+  if ( password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[@$!%*?&]/.test(password)) {
+    return validationStrings.PASSWORD_SUGGESTION;
   }
   return null;
 };

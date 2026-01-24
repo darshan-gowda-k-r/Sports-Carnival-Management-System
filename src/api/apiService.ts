@@ -16,16 +16,16 @@ export const ApiService = {
   login: async (email: string, password: string): Promise<User> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const found = dynamicUsers.find(
-          u => u.email === email && u.password === password
+        const userFound = dynamicUsers.find(
+          currentUser => currentUser.email === email && currentUser.password === password
         );
 
-        if (!found) {
+        if (!userFound) {
           reject(validationStrings.INVALID_CREDENTIALS);
           return;
         }
 
-        const { password: _, ...userData } = found;
+        const { password: _, ...userData } = userFound;
         resolve(userData);
       }, 1000);
     });
@@ -45,9 +45,9 @@ export const ApiService = {
           return;
         }
 
-        const exists = dynamicUsers.some(u => u.email === email);
+        const userExists = dynamicUsers.some(currentUser => currentUser.email === email);
 
-        if (exists) {
+        if (userExists) {
           reject(validationStrings.EMAIL_EXISTS);
           return;
         }
