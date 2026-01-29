@@ -5,14 +5,13 @@ import {
   TextInput,
   ActivityIndicator,
   StyleSheet,
-  TouchableOpacity,
+  Image,
 } from 'react-native';
 import Colors from '../../constants/colors';
 import CustomButton from '../../components/customButton';
 import { validationStrings } from '../../constants/validationStrings';
 import styles from './LoginScreenStyle';
 import { useAuthViewModel } from '../../viewmodels/authViewModel';
-import { isEmailValid, isPasswordValid } from '../../utils/validators';
 import { UserRole } from '../../models/user';
 
 const LoginScreen = ({ navigation }: any) => {
@@ -21,31 +20,15 @@ const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-
-  const handlePasswordChange = (text: string) => {
-    setPassword(text);
-    const errorMsg = isPasswordValid(text);
-    setPasswordError(errorMsg);
-  };
+  const isFormFilled = email.trim() !== '' && password.trim() !== '';
 
   const handleLogin = async () => {
-    const emailError = isEmailValid(email);
-    if (emailError) {
-        alert(emailError);
-        return;
-    }
+  if (!isFormFilled) {
+    return;
+  }
 
-    const passError = isPasswordValid(password);
-    if (passError) {
-        setPasswordError(passError);
-        return;
-    }
-
-    await login(email, password);
-  };
-
-  const isFormValid = !isEmailValid(email) && !isPasswordValid(password);
+  await login(email, password);
+};
 
   useEffect(() => {
     if (!user) return;
@@ -65,8 +48,25 @@ const LoginScreen = ({ navigation }: any) => {
     }
   }, [user, navigation]);
 
+  if (user || loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+
+      <Image
+        source={{
+          uri: 'https://img.pikbest.com/png-images/20241031/minimalist-sports-logo-vector-illustration-on-transparent-background_11037606.png!sw800',
+        }}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+
       <Text style={styles.title}>{validationStrings.TITLE}</Text>
 
       <TextInput
@@ -84,21 +84,16 @@ const LoginScreen = ({ navigation }: any) => {
         placeholderTextColor={Colors.gray}
         style={styles.input}
         value={password}
-        onChangeText={handlePasswordChange}
+        onChangeText={setPassword}
         secureTextEntry
       />
-      {passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {loading ? (
-        <ActivityIndicator size="large" color={Colors.primary} />
-      ) : (
-        <CustomButton
-          title="Login"
-          onPress={handleLogin}
-          disabled={!isFormValid}
-        />
-      )}
+      <CustomButton
+        title="Login"
+        onPress={handleLogin}
+        disabled={!isFormFilled}
+      />
 
       <Text style={styles.registerText}>
         Don’t have an account?{' '}

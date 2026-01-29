@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
       flex: 1,
       padding: 20,
       justifyContent: 'center',
-      backgroundColor: Colors.white
+      backgroundColor: Colors.Background_color
   },
   title: {
       fontSize: 28,
@@ -21,6 +21,12 @@ const styles = StyleSheet.create({
       padding: 12,
       borderRadius: 8,
       marginVertical: 10
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    alignSelf: 'center',
+    transform: [{ translateX: -30 }, { translateY: -30 }],
   },
   fieldError: {
       color: Colors.error,
@@ -64,7 +70,8 @@ const styles = StyleSheet.create({
   },
   link: {
       color: Colors.primary,
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+      fontSize: 18
   },
 });
 

@@ -5,4 +5,11 @@ export default {
   black: '#000000',
   gray: '#6B7280',
   error: '#EF4444',
+  background: '#F3F4F6',
+  shadow : '#000',
+  Background_color: '#FFF8F0',
+  participantAccent: '#FF6B35',
+  participantCardText: '#333333',
+  label:  '#1A1A1A',
+  value: '#2B2B2B', 
 };
