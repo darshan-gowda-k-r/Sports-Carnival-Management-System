@@ -1,0 +1,210 @@
+import { StyleSheet } from 'react-native';
+import Colors from '../../constants/colors';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.Background_color,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.stats_background,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.stats_border,
+  },
+  statBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statBoxBorder: {
+    borderLeftWidth: 1,
+    borderLeftColor: Colors.border_light,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.stats_value,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: Colors.stats_label,
+    marginTop: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.text_light,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  registrationCard: {
+    backgroundColor: Colors.card_background,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: Colors.card_shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  eventInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  eventTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.event_title,
+    marginBottom: 4,
+  },
+  sportType: {
+    fontSize: 14,
+    color: Colors.event_sport,
+    fontWeight: '600',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.white,
+    textTransform: 'uppercase',
+  },
+  cardBody: {
+    marginBottom: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    color: Colors.text_medium,
+  },
+  teamAssigned: {
+    backgroundColor: Colors.team_assigned_background,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  teamAssignedText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.team_assigned_text,
+  },
+  rejectionBox: {
+    backgroundColor: Colors.rejection_background,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  rejectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.rejection_label,
+    marginBottom: 4,
+  },
+  rejectionText: {
+    fontSize: 13,
+    color: Colors.rejection_text,
+    lineHeight: 18,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  viewButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.bg_blue,
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  viewButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.COLOR_BLUE,
+  },
+  cancelButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.bg_red_light,
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.button_cancel,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 48,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.empty_title,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: Colors.empty_subtitle,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  browseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.button_primary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 8,
+    shadowColor: Colors.button_primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  browseButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+});
+
+export default styles;

@@ -1,99 +1,367 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useEventViewModel } from '../../viewmodels/eventViewModel';
+import React from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import styles from './EditEventScreenStyle';
+import CustomHeader from '../../components/customHeader';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { validationStrings } from '../../constants/validationStrings';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useEditEventViewModel } from '../../viewmodels/editEventViewModel';
+import { allows2v2Format, allowsMixedGender, getTotalRegistered } from '../../models/event';
 import Colors from '../../constants/colors';
+import styles from './EditEventScreenStyle';
 
-const EditEventScreen = ({ route }: any) => {
-  const { event } = route.params;
-  const navigation = useNavigation<any>();
-  const { updateEvent } = useEventViewModel();
+const EditEventScreen = () => {
+  const {
+    title,
+    sportType,
+    description,
+    registrationDeadline,
+    matchDate,
+    showDeadlinePicker,
+    showMatchDatePicker,
+    tempDeadline,
+    tempMatchDate,
+    location,
+    format1v1Available,
+    format2v2Available,
+    maxMaleParticipants1v1,
+    maxFemaleParticipants1v1,
+    maxMaleParticipants2v2,
+    maxFemaleParticipants2v2,
+    format1v1,
+    format2v2,
 
-  const [title, setTitle] = useState(event.title);
-  const [sportType, setSportType] = useState(event.sportType);
-  const [description, setDescription] = useState(event.description);
-  const [date, setDate] = useState(event.date);
-  const [location, setLocation] = useState(event.location);
-  const [organizer, setOrganizer] = useState(event.organizer);
+    setTitle,
+    setSportType,
+    setDescription,
+    setLocation,
+    setMaxMaleParticipants1v1,
+    setMaxFemaleParticipants1v1,
+    setMaxMaleParticipants2v2,
+    setMaxFemaleParticipants2v2,
 
-  const handleUpdate = () => {
-    updateEvent({
-      ...event,
-      title,
-      sportType,
-      description,
-      date,
-      location,
-      organizer,
-    });
-    navigation.goBack();
+    formatDate,
+    onDeadlineChange,
+    handleDeadlineConfirm,
+    handleDeadlineCancel,
+    handleShowDeadlinePicker,
+    onMatchDateChange,
+    handleMatchDateConfirm,
+    handleMatchDateCancel,
+    handleShowMatchDatePicker,
+    toggleFormat1v1,
+    toggleFormat2v2,
+    handleUpdate,
+  } = useEditEventViewModel();
+
+  const isFoosball = allows2v2Format(sportType);
+  const isMixedGender = allowsMixedGender(sportType);
+
+  const getMinMatchDate = () => {
+    if (!registrationDeadline) return new Date();
+    const minDate = new Date(registrationDeadline);
+    minDate.setDate(minDate.getDate() + 2);
+    return minDate;
   };
 
   return (
-    <SafeAreaView style = {{ flex: 1, backgroundColor: Colors.Background_color }}>
-        <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.screenTitle}>Edit Event</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <CustomHeader
+        title="Edit Event"
+        showBackButton={true}
+      />
 
-        <View style={styles.inputGroup}>
-            <Text style={styles.label}>Title</Text>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.formCard}>
+          <View style={styles.inputGroup}>
+            <View style={styles.labelContainer}>
+              <Icon name="title" size={20} color={Colors.gray} />
+              <Text style={styles.label}>{validationStrings.EVENT_TITLE}</Text>
+            </View>
             <TextInput
-            style={styles.input}
-            placeholder={validationStrings.EVENT_TITLE}
-            value={title}
-            onChangeText={setTitle}
+              style={styles.input}
+              value={title}
+              onChangeText={setTitle}
+              placeholder={validationStrings.EVENT_TITLE}
+              placeholderTextColor={Colors.text_lighter}
             />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <View style={styles.labelContainer}>
+              <Icon name="sports" size={20} color={Colors.gray} />
+              <Text style={styles.label}>{validationStrings.SPORT_TYPE_TITLE}</Text>
+            </View>
+            <TextInput
+              style={styles.input}
+              value={sportType}
+              onChangeText={setSportType}
+              placeholder={validationStrings.GAMES}
+              placeholderTextColor={Colors.text_lighter}
+              editable={false}
+            />
+            {sportType && isMixedGender && (
+              <Text style={styles.helperText}>ℹ️ {validationStrings.CHESS_MIXED_ALLOWED}</Text>
+            )}
+            {sportType && isFoosball && (
+              <Text style={styles.helperText}>ℹ️ {validationStrings.FOOSBALL_RULES}</Text>
+            )}
+          </View>
+
+          <View style={styles.inputGroup}>
+            <View style={styles.labelContainer}>
+              <Icon name="description" size={20} color={Colors.gray} />
+              <Text style={styles.label}>{validationStrings.DESCRIPTION}</Text>
+            </View>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder={validationStrings.EVENT_DES}
+              placeholderTextColor={Colors.text_lighter}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <View style={styles.labelContainer}>
+              <Icon name="event-available" size={20} color={Colors.gray} />
+              <Text style={styles.label}>{validationStrings.REG_DEADLINE}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.input}
+              onPress={handleShowDeadlinePicker}
+              activeOpacity={0.7}
+            >
+              <Text style={registrationDeadline ? styles.dateText : styles.datePlaceholder}>
+                {registrationDeadline ? formatDate(registrationDeadline) : validationStrings.SELECT_DEADLINE}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.helperText}>{validationStrings.REG_CLOSES_ON_THIS_DAY}</Text>
+
+            {showDeadlinePicker && (
+              <DateTimePicker
+                value={tempDeadline}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onDeadlineChange}
+                minimumDate={new Date()}
+              />
+            )}
+
+            {showDeadlinePicker && Platform.OS === 'ios' && (
+              <View style={styles.datePickerButtons}>
+                <TouchableOpacity
+                  style={[styles.datePickerButton, styles.cancelButton]}
+                  onPress={handleDeadlineCancel}
+                >
+                  <Text style={styles.cancelButtonText}>{validationStrings.CANCEL}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.datePickerButton}
+                  onPress={handleDeadlineConfirm}
+                >
+                  <Text style={styles.datePickerButtonText}>{validationStrings.DONE}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.inputGroup}>
+            <View style={styles.labelContainer}>
+              <Icon name="event" size={20} color={Colors.gray} />
+              <Text style={styles.label}>{validationStrings.MATCH_DATE_DISPLAY}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.input}
+              onPress={handleShowMatchDatePicker}
+              activeOpacity={0.7}
+            >
+              <Text style={matchDate ? styles.dateText : styles.datePlaceholder}>
+                {matchDate ? formatDate(matchDate) : 'Select match date'}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.helperText}>
+              {validationStrings.MATCH_VALID_REGISTRATION}
+            </Text>
+
+            {showMatchDatePicker && (
+              <DateTimePicker
+                value={tempMatchDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onMatchDateChange}
+                minimumDate={getMinMatchDate()}
+              />
+            )}
+
+            {showMatchDatePicker && Platform.OS === 'ios' && (
+              <View style={styles.datePickerButtons}>
+                <TouchableOpacity
+                  style={[styles.datePickerButton, styles.cancelButton]}
+                  onPress={handleMatchDateCancel}
+                >
+                  <Text style={styles.cancelButtonText}>{validationStrings.CANCEL}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.datePickerButton}
+                  onPress={handleMatchDateConfirm}
+                >
+                  <Text style={styles.datePickerButtonText}>{validationStrings.DONE}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.inputGroup}>
+            <View style={styles.labelContainer}>
+              <Icon name="location-on" size={20} color={Colors.gray} />
+              <Text style={styles.label}>{validationStrings.LOCATIONS}</Text>
+            </View>
+            <TextInput
+              style={styles.input}
+              value={location}
+              onChangeText={setLocation}
+              placeholder={validationStrings.EVENT_LOCATION}
+              placeholderTextColor={Colors.text_lighter}
+            />
+          </View>
         </View>
 
-        <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sport Type</Text>
-            <TextInput
-            style={styles.input}
-            placeholder={validationStrings.GAMES}
-            value={sportType}
-            onChangeText={setSportType}
-            />
+        <View style={styles.formCard}>
+          <View style={styles.sectionHeader}>
+            <Icon name="format-list-bulleted" size={24} color={Colors.text_dark} />
+            <View style={styles.sectionHeaderText}>
+              <Text style={styles.sectionTitle}>{validationStrings.PART_LIMIT}</Text>
+              <Text style={styles.sectionSubtitle}>
+                {isFoosball
+                  ? validationStrings.MAX_FOR_TEAM_CREATION
+                  : validationStrings.MAX_FOR_EACH_GENDER}
+              </Text>
+            </View>
+          </View>
+
+          {!isFoosball && (
+            <View style={styles.formatCard}>
+              <TouchableOpacity
+                style={styles.formatCheckbox}
+                onPress={toggleFormat1v1}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, format1v1Available && styles.checkboxActive]}>
+                  {format1v1Available && <Icon name="check" size={18} color={Colors.white} />}
+                </View>
+                <View style={styles.formatInfo}>
+                  <Text style={styles.formatLabel}>{validationStrings.OVO_FORMAT}</Text>
+                  <Text style={styles.formatDescription}>
+                    Individual matches
+                    {format1v1 && getTotalRegistered(format1v1) > 0 &&
+                      ` • ${format1v1.registeredMaleCount}M / ${format1v1.registeredFemaleCount}F registered`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {format1v1Available && (
+                <>
+                  <View style={styles.formatInputContainer}>
+                    <Text style={styles.inputLabel}>{validationStrings.MAX_MALE_PAR}</Text>
+                    <TextInput
+                      style={styles.formatInput}
+                      keyboardType="numeric"
+                      value={maxMaleParticipants1v1}
+                      onChangeText={setMaxMaleParticipants1v1}
+                      placeholder="Enter number"
+                      placeholderTextColor={Colors.text_lighter}
+                    />
+                  </View>
+                  <View style={styles.formatInputContainer}>
+                    <Text style={styles.inputLabel}>{validationStrings.MAX_FEMALE_PAR}</Text>
+                    <TextInput
+                      style={styles.formatInput}
+                      keyboardType="numeric"
+                      value={maxFemaleParticipants1v1}
+                      onChangeText={setMaxFemaleParticipants1v1}
+                      placeholder="Enter number"
+                      placeholderTextColor={Colors.text_lighter}
+                    />
+                  </View>
+                </>
+              )}
+            </View>
+          )}
+
+          {isFoosball && (
+            <View style={styles.formatCard}>
+              <TouchableOpacity
+                style={styles.formatCheckbox}
+                onPress={toggleFormat2v2}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, format2v2Available && styles.checkboxActive]}>
+                  {format2v2Available && <Icon name="check" size={18} color={Colors.white} />}
+                </View>
+                <View style={styles.formatInfo}>
+                  <Text style={styles.formatLabel}>{validationStrings.TVT_FORMAT}</Text>
+                  <Text style={styles.formatDescription}>
+                    Team matches (Admin creates teams)
+                    {format2v2 && getTotalRegistered(format2v2) > 0 &&
+                      ` • ${format2v2.registeredMaleCount}M / ${format2v2.registeredFemaleCount}F registered`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {format2v2Available && (
+                <>
+                  <View style={styles.formatInputContainer}>
+                    <Text style={styles.inputLabel}>{validationStrings.MAX_MALE_PAR}</Text>
+                    <TextInput
+                      style={styles.formatInput}
+                      keyboardType="numeric"
+                      value={maxMaleParticipants2v2}
+                      onChangeText={setMaxMaleParticipants2v2}
+                      placeholder="Enter even number"
+                      placeholderTextColor={Colors.text_lighter}
+                    />
+                    <Text style={styles.helperText}>
+                      {validationStrings.LIMIT_RULES}
+                    </Text>
+                  </View>
+                  <View style={styles.formatInputContainer}>
+                    <Text style={styles.inputLabel}>{validationStrings.MAX_FEMALE_PAR}</Text>
+                    <TextInput
+                      style={styles.formatInput}
+                      keyboardType="numeric"
+                      value={maxFemaleParticipants2v2}
+                      onChangeText={setMaxFemaleParticipants2v2}
+                      placeholder="Enter even number"
+                      placeholderTextColor={Colors.text_lighter}
+                    />
+                    <Text style={styles.helperText}>
+                      {validationStrings.LIMIT_RULES}
+                    </Text>
+                  </View>
+                </>
+              )}
+            </View>
+          )}
         </View>
 
-        <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder={validationStrings.EVENT_DESCRIPTION}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            />
-        </View>
-
-        <View style={styles.inputGroup}>
-            <Text style={styles.label}>Date</Text>
-            <TextInput
-            style={styles.input}
-            placeholder={validationStrings.DATE_FORMAT}
-            value={date}
-            onChangeText={setDate}
-            />
-        </View>
-
-        <View style={styles.inputGroup}>
-            <Text style={styles.label}>Location</Text>
-            <TextInput
-            style={styles.input}
-            placeholder={validationStrings.EVENT_LOCATION}
-            value={location}
-            onChangeText={setLocation}
-            />
-        </View>
-
-        <TouchableOpacity style={styles.button} onPress={handleUpdate}>
-            <Text style={styles.buttonText}>Update Event</Text>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={handleUpdate}
+          activeOpacity={0.8}
+        >
+          <Icon name="save" size={24} color={Colors.white} />
+          <Text style={styles.createButtonText}>{validationStrings.UPDATE_EVENT}</Text>
         </TouchableOpacity>
-        </ScrollView>
+      </ScrollView>
     </SafeAreaView>
-    
   );
 };
 

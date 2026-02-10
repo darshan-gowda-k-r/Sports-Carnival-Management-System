@@ -35,7 +35,7 @@ export const isEmailValid = (email: string): string | null => {
 };
 
 export const isPasswordValid = (password: string): string | null => {
-  
+
   if (!password) {
     return validationStrings.PASSWORD_REQUIRED;
   }

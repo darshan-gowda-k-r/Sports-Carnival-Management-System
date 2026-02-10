@@ -1,48 +1,52 @@
-import { useState } from 'react';
-import { Event, PlayFormat } from '../models/event';
+import { useEffect, useState, useCallback } from 'react';
+import { Event } from '../models/event';
 import { eventApiService } from '../api/eventApiService';
+import { validationStrings } from '../constants/validationStrings';
 
 export const useEventViewModel = () => {
   const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await eventApiService.getEvents();
       setEvents(data);
     } catch {
-      setError('Failed to load events');
+      setError(validationStrings.FAILED_TO_LOAD_EVENTS);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const createEvent = async (event: Omit<Event, 'id'>) => {
     setLoading(true);
     setError(null);
     try {
-      const createdEvent = await eventApiService.createEvent(event);
-      setEvents(prev => [...prev, createdEvent]);
+      const newEvent = await eventApiService.createEvent(event);
+      setEvents(prev => [...prev, newEvent]);
     } catch {
-      setError('Failed to create event');
+      setError(validationStrings.FAILED_TO_CREATE_EVENT);
+      throw new Error(validationStrings.FAILED_TO_CREATE_EVENT);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateEvent = async (event: Event) => {
+  const updateEvent = async (id: string, event: Omit<Event, 'id'>) => {
     setLoading(true);
     setError(null);
     try {
-      const updatedEvent = await eventApiService.updateEvent(event);
+      const updatedEvent = { ...event, id };
+      await eventApiService.updateEvent(updatedEvent);
       setEvents(prev =>
-        prev.map(e => (e.id === updatedEvent.id ? updatedEvent : e))
+        prev.map(e => (e.id === id ? updatedEvent : e))
       );
     } catch {
-      setError('Failed to update event');
+      setError(validationStrings.FAILED_TO_UPDATE_EVENT_MESSAGE);
+      throw new Error(validationStrings.FAILED_TO_UPDATE_EVENT_MESSAGE);
     } finally {
       setLoading(false);
     }
@@ -55,26 +59,20 @@ export const useEventViewModel = () => {
       await eventApiService.deleteEvent(id);
       setEvents(prev => prev.filter(e => e.id !== id));
     } catch {
-      setError('Failed to delete event');
+      setError(validationStrings.FAILED_TO_DELETE_EVENT);
+      throw new Error(validationStrings.FAILED_TO_DELETE_EVENT);
     } finally {
       setLoading(false);
     }
   };
 
-  const registerTeam = async (eventId: string, format: PlayFormat) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const updatedEvent = await eventApiService.registerTeam(eventId, format);
-      setEvents(prev =>
-        prev.map(e => (e.id === updatedEvent.id ? updatedEvent : e))
-      );
-    } catch (err: any) {
-      setError(err.message || 'Failed to register team');
-    } finally {
-      setLoading(false);
-    }
+  const getEventById = (id: string) => {
+    return events.find(e => e.id === id);
   };
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   return {
     events,
@@ -84,6 +82,6 @@ export const useEventViewModel = () => {
     createEvent,
     updateEvent,
     deleteEvent,
-    registerTeam,
+    getEventById,
   };
 };
