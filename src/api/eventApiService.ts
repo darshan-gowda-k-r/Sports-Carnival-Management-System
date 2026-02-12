@@ -129,6 +129,57 @@ export const eventApiService = {
     );
   },
 
+  extendDeadline: async (eventId: string, newDeadline: string): Promise<Event> => {
+    const events = await getStoredEvents();
+    const eventIndex = events.findIndex(e => e.id === eventId);
+
+    if (eventIndex === -1) {
+      throw new Error(validationStrings.EVENT_NOT_EXISTS);
+    }
+
+    events[eventIndex].registrationDeadline = newDeadline;
+    await saveEvents(events);
+    return events[eventIndex];
+  },
+
+  getRegistrationStats: async (
+    eventId: string,
+    format: PlayFormat
+  ): Promise<{
+    maleCount: number;
+    femaleCount: number;
+    maleMax: number;
+    femaleMax: number;
+    malePercentage: number;
+    femalePercentage: number;
+  } | null> => {
+    const event = await eventApiService.getEventById(eventId);
+    if (!event) return null;
+
+    const selectedFormat = event.availableFormats.find(
+      f => f.format === format && f.isAvailable
+    );
+
+    if (!selectedFormat) return null;
+
+    const malePercentage = selectedFormat.maxMaleParticipants > 0
+      ? (selectedFormat.registeredMaleCount / selectedFormat.maxMaleParticipants) * 100
+      : 0;
+
+    const femalePercentage = selectedFormat.maxFemaleParticipants > 0
+      ? (selectedFormat.registeredFemaleCount / selectedFormat.maxFemaleParticipants) * 100
+      : 0;
+
+    return {
+      maleCount: selectedFormat.registeredMaleCount,
+      femaleCount: selectedFormat.registeredFemaleCount,
+      maleMax: selectedFormat.maxMaleParticipants,
+      femaleMax: selectedFormat.maxFemaleParticipants,
+      malePercentage: Math.round(malePercentage),
+      femalePercentage: Math.round(femalePercentage),
+    };
+  },
+
   getAvailableSpots: async (
     eventId: string,
     format: PlayFormat

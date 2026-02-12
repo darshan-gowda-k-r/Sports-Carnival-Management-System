@@ -1,11 +1,11 @@
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomHeader from '../../components/customHeader';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Colors from '../../constants/colors';
 import { validationStrings } from '../../constants/validationStrings';
-import { useOrganizerHomeViewModel, type MenuItem } from '../../viewmodels/organizerHomeViewModel';
+import { useOrganizerHomeViewModel, type MenuItem, type EventFormatOption } from '../../viewmodels/organizerHomeViewModel';
 import styles from './OrganizerScreenStyle';
 
 const OrganizerHomeScreen = () => {
@@ -29,13 +29,31 @@ const OrganizerHomeScreen = () => {
     </TouchableOpacity>
   );
 
+  const renderEventFormatOption = ({ item }: { item: EventFormatOption }) => (
+    <TouchableOpacity
+      style={styles.eventFormatOption}
+      onPress={() => viewModel.handleSelectEventFormat(item)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.eventFormatLeft}>
+        <View style={styles.eventFormatIcon}>
+          <Icon name={validationStrings.ICON_EVENT} size={24} color={Colors.COLOR_BLUE} />
+        </View>
+        <View style={styles.eventFormatInfo}>
+          <Text style={styles.eventFormatTitle}>{item.eventTitle}</Text>
+          <Text style={styles.eventFormatSubtitle}>{item.format} {validationStrings.FORMAT}</Text>
+        </View>
+      </View>
+      <Icon name="chevron-right" size={24} color={Colors.button_disabled} />
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <CustomHeader
         title={validationStrings.ORGANISER_TITLE}
-        showProfile={true}
-        showNotifications={true}
-        notificationCount={5}
+        showLogout={true}
+        onLogoutPress={viewModel.handleLogout}
         userRole={validationStrings.ORGANIZER}
       />
 
@@ -54,14 +72,7 @@ const OrganizerHomeScreen = () => {
               {validationStrings.MAKE_EVENT_AMAZING}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={viewModel.handleLogout}
-            activeOpacity={0.7}
-          >
-            <Icon name="logout" size={20} color={Colors.logout_icon} />
-            <Text style={styles.logoutText}>{validationStrings.LOGOUT}</Text>
-          </TouchableOpacity>
+          <Icon name="celebration" size={48} color={Colors.primary} />
         </View>
 
         <View style={styles.statsContainer}>
@@ -125,6 +136,42 @@ const OrganizerHomeScreen = () => {
           ))}
         </View>
       </ScrollView>
+
+      <Modal
+        visible={viewModel.showCreateTeamsModal}
+        transparent
+        animationType="slide"
+        onRequestClose={viewModel.handleCloseModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{validationStrings.SELECT_EVENT}</Text>
+              <TouchableOpacity onPress={viewModel.handleCloseModal}>
+                <Icon name="close" size={24} color={Colors.text_light} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSubtitle}>
+              {validationStrings.CHOOSE_EVENTS_FORMAT}
+            </Text>
+
+            <FlatList
+              data={viewModel.eventFormatOptions}
+              renderItem={renderEventFormatOption}
+              keyExtractor={(item, index) => `${item.eventId}_${item.format}_${index}`}
+              style={styles.eventFormatList}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <Icon name="event-busy" size={60} color={Colors.border_lighter} />
+                  <Text style={styles.emptyText}>{validationStrings.NO_EVENTS_AVAILABLE}</Text>
+                </View>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

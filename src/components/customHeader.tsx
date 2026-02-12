@@ -18,6 +18,7 @@ interface CustomHeaderProps {
   showShare?: boolean;
   showSettings?: boolean;
   showFilter?: boolean;
+  showLogout?: boolean;
   userRole?: validationStrings.ADMIN | validationStrings.ORGANIZER | validationStrings.PARTICIPANT ;
   notificationCount?: number;
   onMenuPress?: () => void;
@@ -28,6 +29,7 @@ interface CustomHeaderProps {
   onSharePress?: () => void;
   onSettingsPress?: () => void;
   onFilterPress?: () => void;
+  onLogoutPress?: () => void;
   customRightElement?: React.ReactNode;
 }
 
@@ -44,6 +46,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
   showShare = false,
   showSettings = false,
   showFilter = false,
+  showLogout = false,
   userRole,
   notificationCount = 0,
   onMenuPress,
@@ -54,6 +57,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
   onSharePress,
   onSettingsPress,
   onFilterPress,
+  onLogoutPress,
   customRightElement,
 }) => {
   const navigation = useNavigation<any>();
@@ -107,6 +111,16 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
       </View>
 
       <View style={styles.rightSection}>
+        {showLogout && (
+          <TouchableOpacity
+            onPress={onLogoutPress}
+            style={styles.iconButton}
+            activeOpacity={0.7}
+          >
+            <Icon name="logout" size={24} style={styles.logoutIcon} />
+          </TouchableOpacity>
+        )}
+
         {showSearch && (
           <TouchableOpacity
             onPress={onSearchPress}

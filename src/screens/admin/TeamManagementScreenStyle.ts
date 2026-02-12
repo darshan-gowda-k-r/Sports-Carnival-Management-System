@@ -122,6 +122,7 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
+    paddingRight: 40,
   },
   teamTitleSection: {
     flex: 1,
@@ -247,6 +248,7 @@ export default StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     gap: 8,
+    marginTop: 4,
   },
   approveButton: {
     flex: 1,
@@ -281,14 +283,19 @@ export default StyleSheet.create({
 
   deleteIconButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    top: 16,
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: Colors.bg_red_light,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: Colors.error,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   emptyContainer: {

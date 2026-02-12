@@ -44,20 +44,6 @@ export default StyleSheet.create({
     color: Colors.gray,
     fontWeight: '400',
   },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: Colors.logout_background,
-    gap: 6,
-  },
-  logoutText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.logout_text,
-  },
 
   statsContainer: {
     flexDirection: 'row',
@@ -217,5 +203,88 @@ export default StyleSheet.create({
   activityTime: {
     fontSize: 12,
     color: Colors.gray,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border_light,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.black,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.gray,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  eventFormatList: {
+    paddingHorizontal: 20,
+  },
+  eventFormatOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.white,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border_light,
+  },
+  eventFormatLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  eventFormatIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: Colors.stats_background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  eventFormatInfo: {
+    flex: 1,
+  },
+  eventFormatTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.black,
+    marginBottom: 4,
+  },
+  eventFormatSubtitle: {
+    fontSize: 13,
+    color: Colors.gray,
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: Colors.gray,
+    marginTop: 16,
+    textAlign: 'center',
   },
 });

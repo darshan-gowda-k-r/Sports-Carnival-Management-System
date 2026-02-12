@@ -6,7 +6,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { headerStrings, validationStrings } from '../../constants/validationStrings';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useCreateEventViewModel } from '../../viewmodels/createEventViewModel';
-import { allows2v2Format, allowsMixedGender } from '../../models/event';
+import { allows2v2Format, allowsMixedGender, isChess } from '../../models/event';
 import Colors from '../../constants/colors';
 import styles from './CreateEventScreenStyle';
 
@@ -30,6 +30,7 @@ const CreateEventScreen = ({ route }: any) => {
     maxFemaleParticipants1v1,
     maxMaleParticipants2v2,
     maxFemaleParticipants2v2,
+    maxTotalParticipants,
 
     setTitle,
     setSportType,
@@ -39,6 +40,7 @@ const CreateEventScreen = ({ route }: any) => {
     setMaxFemaleParticipants1v1,
     setMaxMaleParticipants2v2,
     setMaxFemaleParticipants2v2,
+    setMaxTotalParticipants,
 
     formatDate,
     onDeadlineChange,
@@ -56,6 +58,7 @@ const CreateEventScreen = ({ route }: any) => {
 
   const isFoosball = allows2v2Format(sportType);
   const isMixedGender = allowsMixedGender(sportType);
+  const isChessGame = isChess(sportType);
 
   const getMinMatchDate = () => {
     if (!registrationDeadline) return new Date();
@@ -101,14 +104,24 @@ const CreateEventScreen = ({ route }: any) => {
               style={styles.input}
               value={sportType}
               onChangeText={setSportType}
-              placeholder={validationStrings.GAMES}
+              placeholder={validationStrings.SPORT_PLACEHOLDER}
               placeholderTextColor={Colors.text_lighter}
             />
             {sportType && isMixedGender && (
-              <Text style={styles.helperText}>ℹ️ {validationStrings.CHESS_MIXED_ALLOWED}</Text>
+              <View style={styles.infoBox}>
+                <Icon name="info" size={16} color={Colors.info} />
+                <Text style={styles.infoText}>
+                  ♟️ {validationStrings.CHESS_MIXED_INFO}
+                </Text>
+              </View>
             )}
             {sportType && isFoosball && (
-              <Text style={styles.helperText}>ℹ️ {validationStrings.FOOSBALL_RULES}</Text>
+              <View style={styles.infoBox}>
+                <Icon name="info" size={16} color={Colors.warning} />
+                <Text style={styles.infoText}>
+                  ⚽ {validationStrings.FOOSBALL_2V2_INFO}
+                </Text>
+              </View>
             )}
           </View>
 
@@ -140,7 +153,7 @@ const CreateEventScreen = ({ route }: any) => {
               activeOpacity={0.7}
             >
               <Text style={registrationDeadline ? styles.dateText : styles.datePlaceholder}>
-                {registrationDeadline ? formatDate(registrationDeadline) : 'Select registration deadline'}
+                {registrationDeadline ? formatDate(registrationDeadline) : validationStrings.SELECT_DEADLINE}
               </Text>
             </TouchableOpacity>
 
@@ -235,10 +248,104 @@ const CreateEventScreen = ({ route }: any) => {
             <Icon name="format-list-bulleted" size={24} color={Colors.text_dark} />
             <View style={styles.sectionHeaderText}>
               <Text style={styles.sectionTitle}>{validationStrings.PART_LIMIT}</Text>
+              <Text style={styles.sectionSubtitle}>
+                {isChessGame
+                  ? validationStrings.TOTAL_MIXED_SUBTITLE
+                  : isFoosball
+                  ? validationStrings.PARTICIPANTS_PER_GENDER_ADMIN
+                  : validationStrings.PARTICIPANTS_PER_GENDER
+                }
+              </Text>
             </View>
           </View>
 
-          {!isFoosball && (
+          {isChessGame && (
+            <View style={styles.formatCard}>
+              <TouchableOpacity
+                style={styles.formatCheckbox}
+                onPress={toggleFormat1v1}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, format1v1Available && styles.checkboxActive]}>
+                  {format1v1Available && <Icon name="check" size={18} color={Colors.white} />}
+                </View>
+                <View style={styles.formatInfo}>
+                  <Text style={styles.formatLabel}>♟️ {validationStrings.CHESS_1V1_FORMAT}</Text>
+                  <Text style={styles.formatDescription}>{validationStrings.INDIVIDUAL_MIXED}</Text>
+                </View>
+              </TouchableOpacity>
+
+              {format1v1Available && (
+                <View style={styles.formatInputContainer}>
+                  <Text style={styles.inputLabel}>{validationStrings.MAX_TOTAL_PARTICIPANTS}</Text>
+                  <TextInput
+                    style={styles.formatInput}
+                    keyboardType="numeric"
+                    value={maxTotalParticipants}
+                    onChangeText={setMaxTotalParticipants}
+                    placeholder={validationStrings.ENTER_TOTAL_NUMBER}
+                    placeholderTextColor={Colors.text_lighter}
+                  />
+                  <Text style={styles.helperText}>
+                    {validationStrings.CHESS_AUTO_MATCH}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {isFoosball && (
+            <View style={styles.formatCard}>
+              <TouchableOpacity
+                style={styles.formatCheckbox}
+                onPress={toggleFormat2v2}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, format2v2Available && styles.checkboxActive]}>
+                  {format2v2Available && <Icon name="check" size={18} color={Colors.white} />}
+                </View>
+                <View style={styles.formatInfo}>
+                  <Text style={styles.formatLabel}>⚽ {validationStrings.TVT_FORMAT}</Text>
+                  <Text style={styles.formatDescription}>{validationStrings.TEAM_CREATE}</Text>
+                </View>
+              </TouchableOpacity>
+
+              {format2v2Available && (
+                <>
+                  <View style={styles.formatInputContainer}>
+                    <Text style={styles.inputLabel}>{validationStrings.MAX_MALE_PAR}</Text>
+                    <TextInput
+                      style={styles.formatInput}
+                      keyboardType="numeric"
+                      value={maxMaleParticipants2v2}
+                      onChangeText={setMaxMaleParticipants2v2}
+                      placeholder={validationStrings.ENTER_EVEN_NUMBER}
+                      placeholderTextColor={Colors.text_lighter}
+                    />
+                    <Text style={styles.helperText}>
+                      {validationStrings.LIMIT_RULES}
+                    </Text>
+                  </View>
+                  <View style={styles.formatInputContainer}>
+                    <Text style={styles.inputLabel}>{validationStrings.MAX_FEMALE_PAR}</Text>
+                    <TextInput
+                      style={styles.formatInput}
+                      keyboardType="numeric"
+                      value={maxFemaleParticipants2v2}
+                      onChangeText={setMaxFemaleParticipants2v2}
+                      placeholder={validationStrings.ENTER_EVEN_NUMBER}
+                      placeholderTextColor={Colors.text_lighter}
+                    />
+                    <Text style={styles.helperText}>
+                      {validationStrings.LIMIT_RULES}
+                    </Text>
+                  </View>
+                </>
+              )}
+            </View>
+          )}
+
+          {!isFoosball && !isChessGame && (
             <View style={styles.formatCard}>
               <TouchableOpacity
                 style={styles.formatCheckbox}
@@ -263,7 +370,7 @@ const CreateEventScreen = ({ route }: any) => {
                       keyboardType="numeric"
                       value={maxMaleParticipants1v1}
                       onChangeText={setMaxMaleParticipants1v1}
-                      placeholder="Enter number"
+                      placeholder={validationStrings.ENTER_NUMBER_PLACEHOLDER}
                       placeholderTextColor={Colors.text_lighter}
                     />
                   </View>
@@ -274,60 +381,9 @@ const CreateEventScreen = ({ route }: any) => {
                       keyboardType="numeric"
                       value={maxFemaleParticipants1v1}
                       onChangeText={setMaxFemaleParticipants1v1}
-                      placeholder="Enter number"
+                      placeholder={validationStrings.ENTER_NUMBER_PLACEHOLDER}
                       placeholderTextColor={Colors.text_lighter}
                     />
-                  </View>
-                </>
-              )}
-            </View>
-          )}
-
-          {isFoosball && (
-            <View style={styles.formatCard}>
-              <TouchableOpacity
-                style={styles.formatCheckbox}
-                onPress={toggleFormat2v2}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.checkbox, format2v2Available && styles.checkboxActive]}>
-                  {format2v2Available && <Icon name="check" size={18} color={Colors.white} />}
-                </View>
-                <View style={styles.formatInfo}>
-                  <Text style={styles.formatLabel}>{validationStrings.TVT_FORMAT}</Text>
-                  <Text style={styles.formatDescription}>{validationStrings.TEAM_CREATE}</Text>
-                </View>
-              </TouchableOpacity>
-
-              {format2v2Available && (
-                <>
-                  <View style={styles.formatInputContainer}>
-                    <Text style={styles.inputLabel}>{validationStrings.MAX_FEMALE_PAR}</Text>
-                    <TextInput
-                      style={styles.formatInput}
-                      keyboardType="numeric"
-                      value={maxMaleParticipants2v2}
-                      onChangeText={setMaxMaleParticipants2v2}
-                      placeholder="Enter even number"
-                      placeholderTextColor={Colors.text_lighter}
-                    />
-                    <Text style={styles.helperText}>
-                      {validationStrings.LIMIT_RULES}
-                    </Text>
-                  </View>
-                  <View style={styles.formatInputContainer}>
-                    <Text style={styles.inputLabel}>{validationStrings.MAX_FEMALE_PAR}</Text>
-                    <TextInput
-                      style={styles.formatInput}
-                      keyboardType="numeric"
-                      value={maxFemaleParticipants2v2}
-                      onChangeText={setMaxFemaleParticipants2v2}
-                      placeholder="Enter even number"
-                      placeholderTextColor={Colors.text_lighter}
-                    />
-                    <Text style={styles.helperText}>
-                      {validationStrings.LIMIT_RULES}
-                    </Text>
                   </View>
                 </>
               )}

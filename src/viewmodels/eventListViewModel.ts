@@ -101,6 +101,20 @@ export const useEventListViewModel = () => {
     return (role === validationStrings.ORGANIZER && isMyEvent) || role === validationStrings.ADMIN;
   }, [role, currentOrganizerId]);
 
+  const canDeleteEvent = useCallback((event: Event) => {
+    const isMyEvent = event.organizerId === currentOrganizerId;
+
+    if (role === validationStrings.ADMIN) {
+      return true;
+    }
+
+    if (role === validationStrings.ORGANIZER && isMyEvent) {
+      return true;
+    }
+
+    return false;
+  }, [role, currentOrganizerId]);
+
   const isMyEvent = useCallback((event: Event) => {
     return event.organizerId === currentOrganizerId;
   }, [currentOrganizerId]);
@@ -159,6 +173,7 @@ export const useEventListViewModel = () => {
     handleNavigateToEdit,
     handleDeleteWithStopPropagation,
     canManageEvent,
+    canDeleteEvent,
     isMyEvent,
     getStatusStyle,
     getEmptyStateTitle,

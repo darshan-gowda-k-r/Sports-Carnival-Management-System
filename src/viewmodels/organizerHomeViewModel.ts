@@ -3,8 +3,15 @@ import { Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useEvents } from '../context/eventContext';
 import { useAuth } from '../context/authContext';
+import { PlayFormat } from '../models/event';
 import Colors from '../constants/colors';
 import { headerStrings, validationStrings } from '../constants/validationStrings';
+
+export interface EventFormatOption {
+  eventId: string;
+  eventTitle: string;
+  format: PlayFormat;
+}
 
 interface MenuItem {
   id: number;
@@ -24,6 +31,8 @@ export const useOrganizerHomeViewModel = () => {
 
   const [myEventsCount, setMyEventsCount] = useState(0);
   const [totalRegistrations, setTotalRegistrations] = useState(0);
+  const [showCreateTeamsModal, setShowCreateTeamsModal] = useState(false);
+  const [eventFormatOptions, setEventFormatOptions] = useState<EventFormatOption[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -59,6 +68,26 @@ export const useOrganizerHomeViewModel = () => {
     setTotalRegistrations(registrations);
   }, [events, currentOrganizerId]);
 
+  useEffect(() => {
+    const myEvents = events.filter(
+      event => event.organizerId === currentOrganizerId
+    );
+
+    const options: EventFormatOption[] = [];
+    myEvents.forEach(event => {
+      event.availableFormats.forEach(formatObj => {
+        if (formatObj.isAvailable) {
+          options.push({
+            eventId: event.id,
+            eventTitle: event.title,
+            format: formatObj.format,
+          });
+        }
+      });
+    });
+    setEventFormatOptions(options);
+  }, [events, currentOrganizerId]);
+
   const handleLogout = useCallback(() => {
     Alert.alert(
       headerStrings.LOGOUT,
@@ -89,54 +118,90 @@ export const useOrganizerHomeViewModel = () => {
     navigation.navigate(validationStrings.SCREEN_CREATE_EVENT, { role: validationStrings.ORGANIZER });
   }, [navigation]);
 
-  const navigateToMyEvents = useCallback(() => {
-    navigation.navigate(validationStrings.SCREEN_EVENT_LIST, { role: validationStrings.ORGANIZER, filter: validationStrings.MY_EVENTS_FILTER });
-  }, [navigation]);
-
   const navigateToAllEvents = useCallback(() => {
     navigation.navigate(validationStrings.SCREEN_EVENT_LIST, { role: validationStrings.ORGANIZER, filter: validationStrings.ALL_FILTER });
   }, [navigation]);
 
-  const navigateToTeamRegistrations = useCallback(() => {
-    navigation.navigate(validationStrings.SCREEN_TEAM_REGISTRATIONS, { role: validationStrings.ORGANIZER });
+  const navigateToManageRegistrations = useCallback(() => {
+    navigation.navigate(validationStrings.SCREEN_MANAGE_REGISTRATIONS, {
+      role: validationStrings.ORGANIZER
+    });
   }, [navigation]);
 
-  const navigateToSchedulesResults = useCallback(() => {
-    navigation.navigate(validationStrings.SCREEN_SCHEDULES_RESULTS, { role: validationStrings.ORGANIZER });
+  const handleCreateTeamsPress = useCallback(() => {
+    if (eventFormatOptions.length === 0) {
+      Alert.alert(
+        validationStrings.NO_EVENTS_AVAILABLE,
+        validationStrings.CREATE_FORMAT
+      );
+      return;
+    }
+    setShowCreateTeamsModal(true);
+  }, [eventFormatOptions.length]);
+
+  const navigateToTeamManagement = useCallback(() => {
+    navigation.navigate(validationStrings.SCREEN_TEAM_MANAGEMENT, { role: validationStrings.ORGANIZER });
   }, [navigation]);
+
+  const navigateToFixtures = useCallback(() => {
+    navigation.navigate(validationStrings.SCREEN_VIEW_FIXTURES, {
+      role: validationStrings.ORGANIZER,
+      organizerId: user?.email,
+    });
+  }, [navigation, user]);
+
+  const handleSelectEventFormat = useCallback((option: EventFormatOption) => {
+    setShowCreateTeamsModal(false);
+    navigation.navigate(validationStrings.SCREEN_CREATE_TEAMS, {
+      eventId: option.eventId,
+      format: option.format,
+    });
+  }, [navigation]);
+
+  const handleCloseModal = useCallback(() => {
+    setShowCreateTeamsModal(false);
+  }, []);
 
   const menuItems: MenuItem[] = [
     {
       id: 1,
-      title: validationStrings.MY_EVENTS,
-      subtitle: validationStrings.MY_EVENTS_SUBTITLE,
-      icon: validationStrings.ICON_EVENT_AVAILABLE,
-      color: Colors.COLOR_BLUE,
-      onPress: navigateToMyEvents,
-    },
-    {
-      id: 2,
-      title: validationStrings.ALL_EVENTS_MENU,
+      title: validationStrings.VIEW_EVENTS,
       subtitle: validationStrings.ALL_EVENTS_SUBTITLE,
       icon: validationStrings.ICON_EVENT,
-      color: Colors.COLOR_GREEN,
+      color: Colors.COLOR_BLUE,
       onPress: navigateToAllEvents,
     },
     {
-      id: 3,
-      title: validationStrings.TEAM_REG,
-      subtitle: validationStrings.TEAM_REG_SUBTITLE,
+      id: 2,
+      title: validationStrings.MANAGE_REG,
+      subtitle: validationStrings.APPROVE_OR_REJECT,
       icon: validationStrings.ICON_HOW_TO_REG,
+      color: Colors.COLOR_GREEN,
+      onPress: navigateToManageRegistrations,
+    },
+    {
+      id: 3,
+      title: headerStrings.CREATE_TEAMS,
+      subtitle: validationStrings.FORM_TEAMS,
+      icon: validationStrings.ICON_GROUPS,
       color: Colors.COLOR_ORANGE,
-      onPress: navigateToTeamRegistrations,
+      onPress: handleCreateTeamsPress,
     },
     {
       id: 4,
-      title: validationStrings.SCHEDULE_RESULT,
-      subtitle: validationStrings.SCHEDULE_RESULT_SUBTITLE,
-      icon: validationStrings.ICON_CALENDAR_TODAY,
+      title: validationStrings.TEAM_MANAGE,
+      subtitle: validationStrings.VIEW_TEAM_REG,
+      icon: validationStrings.ICON_GROUP,
       color: Colors.COLOR_PURPLE,
-      onPress: navigateToSchedulesResults,
+      onPress: navigateToTeamManagement,
+    },
+    {
+      id: 5,
+      title: validationStrings.FIXTURES,
+      subtitle: validationStrings.ALL_FIXTURES,
+      icon: validationStrings.ICON_TROPHY,
+      color: Colors.COLOR_TEAL,
+      onPress: navigateToFixtures,
     },
   ];
 
@@ -144,15 +209,20 @@ export const useOrganizerHomeViewModel = () => {
     if (myEventsCount > 0) {
       const items = [
         {
-          title: validationStrings.EVENTS_DASHBOARD_READY,
-          description: validationStrings.ACTIVE_EVENTS_COUNT(myEventsCount),
+          title: validationStrings.EVENTS_ACTIVE,
+          description: validationStrings.MANAGING_EVENTS(myEventsCount),
         },
       ];
 
       if (totalRegistrations > 0) {
         items.push({
           title: validationStrings.REGISTRATIONS_RECEIVED,
-          description: validationStrings.PARTICIPANTS_REGISTERED_COUNT(totalRegistrations),
+          description: validationStrings.PARTICIPANTS_REGISTERED(totalRegistrations),
+        });
+      } else {
+        items.push({
+          title: validationStrings.READY_FOR_REGISTRATIONS,
+          description: validationStrings.AWAITING_SIGNUPS,
         });
       }
 
@@ -161,8 +231,8 @@ export const useOrganizerHomeViewModel = () => {
 
     return [
       {
-        title: validationStrings.READY_TO_GET_STARTED,
-        description: validationStrings.CREATE_FIRST_EVENT_PROMPT,
+        title: validationStrings.WELCOME_EXCLAIM,
+        description: validationStrings.CREATE_FIRST_EVENT,
       },
     ];
   }, [myEventsCount, totalRegistrations]);
@@ -171,12 +241,17 @@ export const useOrganizerHomeViewModel = () => {
     user,
     myEventsCount,
     totalRegistrations,
+    showCreateTeamsModal,
+    eventFormatOptions,
 
     handleLogout,
     navigateToCreateEvent,
 
     menuItems,
     activityItems: getActivityItems(),
+
+    handleSelectEventFormat,
+    handleCloseModal,
   };
 };
 

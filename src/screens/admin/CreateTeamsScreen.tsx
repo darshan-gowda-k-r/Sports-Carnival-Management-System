@@ -23,11 +23,13 @@ const CreateTeamsScreen = () => {
     format,
     approvedParticipants,
     existingTeams,
+    existingMatches,
     loading,
     showManualModal,
     selectedParticipants,
     teamSize,
     stats,
+    is1v1,
     handleAutoGenerate,
     handleManualCreate,
     toggleParticipantSelection,
@@ -137,7 +139,7 @@ const CreateTeamsScreen = () => {
           {team.members.map((member, index) => (
             <View key={index} style={styles.memberRow}>
               <View style={styles.memberAvatar}>
-                <Icon name="person" size={18} color={Colors.status_rejected} />
+                <Icon name="person" size={18} color={Colors.white} />
               </View>
               <View style={styles.memberInfo}>
                 <Text style={styles.memberName}>{member.name}</Text>
@@ -163,10 +165,31 @@ const CreateTeamsScreen = () => {
     );
   };
 
+  const getAutoButtonText = () => {
+    if (is1v1) {
+      return existingMatches.length > 0 ? validationStrings.FIXTURES_CREATED : validationStrings.AUTO_GENERATE_MATCHES;
+    }
+    return existingMatches.length > 0 ? validationStrings.FIXTURES_CREATED : validationStrings.AUTO_GENERATE_MATCH;
+  };
+
+  const getGenerateButtonText = () => {
+    if (existingMatches.length > 0) {
+      return validationStrings.VIEW_FIXTURES;
+    }
+    return validationStrings.GENERATE_MATCHES;
+  };
+
+  const shouldShowGenerateButton = () => {
+    if (is1v1) {
+      return approvedParticipants.length >= 2;
+    }
+    return existingTeams.length >= 2;
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <CustomHeader
-        title={`Create ${format} Teams`}
+        title={`Create ${format} ${is1v1 ? 'Matches' : 'Teams'}`}
         showBackButton={true}
         userRole="ADMIN"
       />
@@ -184,49 +207,67 @@ const CreateTeamsScreen = () => {
         </View>
         <View style={[styles.statItem, styles.statBorder]}>
           <Text style={[styles.statValue, { color: Colors.COLOR_GREEN }]}>
-            {stats.teamsCreated}
+            {is1v1 ? existingMatches.length : stats.teamsCreated}
           </Text>
-          <Text style={styles.statLabel}>{validationStrings.TEAMS}</Text>
+          <Text style={styles.statLabel}>{is1v1 ? 'Matches' : validationStrings.TEAMS}</Text>
         </View>
       </View>
 
-      <View style={styles.actionBar}>
-        <TouchableOpacity
-          style={styles.autoButton}
-          onPress={handleAutoGenerate}
-          activeOpacity={0.8}
-          disabled={approvedParticipants.length === 0}
-        >
-          <Icon name="auto-fix-high" size={20} color={Colors.white} />
-          <Text style={styles.autoButtonText}>{validationStrings.AUTO_GENERATE_MATCH}</Text>
-        </TouchableOpacity>
+      {existingMatches.length === 0 && (
+        <View style={styles.actionBar}>
+          <TouchableOpacity
+            style={styles.autoButton}
+            onPress={handleAutoGenerate}
+            activeOpacity={0.8}
+            disabled={approvedParticipants.length === 0}
+          >
+            <Icon name="auto-fix-high" size={20} color={Colors.white} />
+            <Text style={styles.autoButtonText}>{getAutoButtonText()}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.manualButton}
-          onPress={handleManualCreate}
-          activeOpacity={0.8}
-          disabled={approvedParticipants.length === 0}
-        >
-          <Icon name="group-add" size={20} color={Colors.status_scheduled} />
-          <Text style={styles.manualButtonText}>{validationStrings.MANUAL_CREATE}</Text>
-        </TouchableOpacity>
-      </View>
+          {!is1v1 && (
+            <TouchableOpacity
+              style={styles.manualButton}
+              onPress={handleManualCreate}
+              activeOpacity={0.8}
+              disabled={approvedParticipants.length === 0}
+            >
+              <Icon name="group-add" size={20} color={Colors.status_scheduled} />
+              <Text style={styles.manualButtonText}>{validationStrings.MANUAL_CREATE}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
-      {existingTeams.length >= 2 && (
+      {shouldShowGenerateButton() && (
         <View style={styles.matchGenerationBar}>
           <View style={styles.matchInfo}>
-            <Icon name="sports" size={20} color={Colors.status_approved} />
+            <Icon
+              name={existingMatches.length > 0 ? 'check-circle' : 'sports'}
+              size={20}
+              color={existingMatches.length > 0 ? Colors.success : Colors.status_approved}
+            />
             <Text style={styles.matchInfoText}>
-              {existingTeams.length} {validationStrings.TEAMS_READY_FOR_MATCHES}
+              {existingMatches.length > 0
+                ? `${existingMatches.length} fixtures created`
+                : `${is1v1 ? approvedParticipants.length : existingTeams.length} ${is1v1 ? 'participants' : validationStrings.TEAMS_READY_FOR_MATCHES}`
+              }
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.generateMatchesButton}
+            style={[
+              styles.generateMatchesButton,
+              existingMatches.length > 0 && styles.generateMatchesButtonDisabled,
+            ]}
             onPress={handleGenerateMatches}
             activeOpacity={0.8}
           >
-            <Icon name="sports-soccer" size={20} color={Colors.white}/>
-            <Text style={styles.generateMatchesText}>{validationStrings.GENERATE_MATCHES}</Text>
+            <Icon
+              name={existingMatches.length > 0 ? 'visibility' : 'sports-soccer'}
+              size={20}
+              color={Colors.white}
+            />
+            <Text style={styles.generateMatchesText}>{getGenerateButtonText()}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -240,7 +281,7 @@ const CreateTeamsScreen = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {existingTeams.length > 0 && (
+          {!is1v1 && existingTeams.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Icon name="groups" size={24} color={Colors.stats_value} />
@@ -254,7 +295,9 @@ const CreateTeamsScreen = () => {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Icon name="person-outline" size={24} color={Colors.stats_value} />
-                <Text style={styles.sectionTitle}>{validationStrings.UNASSIGNED_PARTICIPANTS}</Text>
+                <Text style={styles.sectionTitle}>
+                  {is1v1 ? validationStrings.AVAILABLE_PARTICIPANTS : validationStrings.UNASSIGNED_PARTICIPANTS}
+                </Text>
               </View>
               {approvedParticipants.map((participant, index) => (
                 <View key={index} style={styles.unassignedItem}>
@@ -291,7 +334,6 @@ const CreateTeamsScreen = () => {
                           : Colors.badge_gender_text
                       }
                     />
-
                   </View>
                 </View>
               ))}
@@ -321,12 +363,12 @@ const CreateTeamsScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{validationStrings.MANUAL_TEAM_CREATE}</Text>
               <TouchableOpacity onPress={handleCloseModal}>
-                <Icon name="close" size={24} color={Colors.MANUAL_TEAM} />
+                <Icon name="close" size={24} color={Colors.text_light} />
               </TouchableOpacity>
             </View>
 
             <Text style={styles.modalSubtitle}>
-              Select {teamSize} participant{teamSize > 1 ? 's' : ''} for this {format} team
+              Select {teamSize} participants of the same gender for this {format} team
             </Text>
 
             <View style={styles.selectionCounter}>

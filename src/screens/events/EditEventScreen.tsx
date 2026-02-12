@@ -1,16 +1,42 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomHeader from '../../components/customHeader';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { validationStrings } from '../../constants/validationStrings';
+import { validationStrings, headerStrings } from '../../constants/validationStrings';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useEditEventViewModel } from '../../viewmodels/editEventViewModel';
-import { allows2v2Format, allowsMixedGender, getTotalRegistered } from '../../models/event';
+import { allows2v2Format, allowsMixedGender, getTotalRegistered, isChess } from '../../models/event';
+import { useAuth } from '../../context/authContext';
+import { useNavigation } from '@react-navigation/native';
 import Colors from '../../constants/colors';
 import styles from './EditEventScreenStyle';
 
-const EditEventScreen = () => {
+const EditEventScreen = ({ route }: any) => {
+  const navigation = useNavigation<any>();
+  const { user } = useAuth();
+  const { event } = route.params;
+
+  const currentUserId = user?.email || user?.id;
+  const isAdmin = user?.role === validationStrings.ADMIN;
+  const isOwner = event.organizerId === currentUserId;
+  const canEdit = isAdmin || isOwner;
+
+  useEffect(() => {
+    if (!canEdit) {
+      Alert.alert(
+        validationStrings.ERROR,
+        validationStrings.NO_EDIT_PERMISSION,
+        [
+          {
+            text: validationStrings.OK,
+            onPress: () => navigation.goBack()
+          }
+        ]
+      );
+    }
+  }, [canEdit, navigation]);
+
   const {
     title,
     sportType,
@@ -28,6 +54,7 @@ const EditEventScreen = () => {
     maxFemaleParticipants1v1,
     maxMaleParticipants2v2,
     maxFemaleParticipants2v2,
+    maxTotalParticipants,
     format1v1,
     format2v2,
 
@@ -39,6 +66,7 @@ const EditEventScreen = () => {
     setMaxFemaleParticipants1v1,
     setMaxMaleParticipants2v2,
     setMaxFemaleParticipants2v2,
+    setMaxTotalParticipants,
 
     formatDate,
     onDeadlineChange,
@@ -56,6 +84,7 @@ const EditEventScreen = () => {
 
   const isFoosball = allows2v2Format(sportType);
   const isMixedGender = allowsMixedGender(sportType);
+  const isChessGame = isChess(sportType);
 
   const getMinMatchDate = () => {
     if (!registrationDeadline) return new Date();
@@ -64,10 +93,14 @@ const EditEventScreen = () => {
     return minDate;
   };
 
+  if (!canEdit) {
+    return null;
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <CustomHeader
-        title="Edit Event"
+        title={headerStrings.EDIT_EVENT}
         showBackButton={true}
       />
 
@@ -76,6 +109,16 @@ const EditEventScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {event.organizerId && (
+          <View style={styles.organizerBadge}>
+            <Icon name={validationStrings.PERSON} size={16} color={Colors.primary} />
+            <Text style={styles.organizerText}>
+              {validationStrings.CREATED_BY} {event.organizerId}
+              {isOwner && ' (You)'}
+            </Text>
+          </View>
+        )}
+
         <View style={styles.formCard}>
           <View style={styles.inputGroup}>
             <View style={styles.labelContainer}>
@@ -97,7 +140,7 @@ const EditEventScreen = () => {
               <Text style={styles.label}>{validationStrings.SPORT_TYPE_TITLE}</Text>
             </View>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: Colors.border_light }]}
               value={sportType}
               onChangeText={setSportType}
               placeholder={validationStrings.GAMES}
@@ -105,10 +148,20 @@ const EditEventScreen = () => {
               editable={false}
             />
             {sportType && isMixedGender && (
-              <Text style={styles.helperText}>ℹ️ {validationStrings.CHESS_MIXED_ALLOWED}</Text>
+              <View style={styles.infoBox}>
+                <Icon name="info" size={16} color={Colors.info} />
+                <Text style={styles.infoText}>
+                  ♟️ {validationStrings.CHESS_MIXED_ALLOWED}
+                </Text>
+              </View>
             )}
             {sportType && isFoosball && (
-              <Text style={styles.helperText}>ℹ️ {validationStrings.FOOSBALL_RULES}</Text>
+              <View style={styles.infoBox}>
+                <Icon name="info" size={16} color={Colors.warning} />
+                <Text style={styles.infoText}>
+                  ⚽ {validationStrings.FOOSBALL_RULES}
+                </Text>
+              </View>
             )}
           </View>
 
@@ -175,7 +228,7 @@ const EditEventScreen = () => {
 
           <View style={styles.inputGroup}>
             <View style={styles.labelContainer}>
-              <Icon name="event" size={20} color={Colors.gray} />
+              <Icon name={validationStrings.ICON_EVENT} size={20} color={Colors.gray} />
               <Text style={styles.label}>{validationStrings.MATCH_DATE_DISPLAY}</Text>
             </View>
             <TouchableOpacity
@@ -184,7 +237,7 @@ const EditEventScreen = () => {
               activeOpacity={0.7}
             >
               <Text style={matchDate ? styles.dateText : styles.datePlaceholder}>
-                {matchDate ? formatDate(matchDate) : 'Select match date'}
+                {matchDate ? formatDate(matchDate) : validationStrings.FORMAT_DATE}
               </Text>
             </TouchableOpacity>
             <Text style={styles.helperText}>
@@ -240,14 +293,16 @@ const EditEventScreen = () => {
             <View style={styles.sectionHeaderText}>
               <Text style={styles.sectionTitle}>{validationStrings.PART_LIMIT}</Text>
               <Text style={styles.sectionSubtitle}>
-                {isFoosball
+                {isChessGame
+                  ? validationStrings.TOTAL_MIXED_SUBTITLE
+                  : isFoosball
                   ? validationStrings.MAX_FOR_TEAM_CREATION
                   : validationStrings.MAX_FOR_EACH_GENDER}
               </Text>
             </View>
           </View>
 
-          {!isFoosball && (
+          {isChessGame && (
             <View style={styles.formatCard}>
               <TouchableOpacity
                 style={styles.formatCheckbox}
@@ -258,40 +313,30 @@ const EditEventScreen = () => {
                   {format1v1Available && <Icon name="check" size={18} color={Colors.white} />}
                 </View>
                 <View style={styles.formatInfo}>
-                  <Text style={styles.formatLabel}>{validationStrings.OVO_FORMAT}</Text>
+                  <Text style={styles.formatLabel}>♟️ {validationStrings.CHESS_1V1_FORMAT}</Text>
                   <Text style={styles.formatDescription}>
-                    Individual matches
+                    {validationStrings.INDIVIDUAL_MIXED}
                     {format1v1 && getTotalRegistered(format1v1) > 0 &&
-                      ` • ${format1v1.registeredMaleCount}M / ${format1v1.registeredFemaleCount}F registered`}
+                      ` ${validationStrings.DIVIDER_DOT} ${getTotalRegistered(format1v1)} ${validationStrings.REGISTERED_LABEL}`}
                   </Text>
                 </View>
               </TouchableOpacity>
 
               {format1v1Available && (
-                <>
-                  <View style={styles.formatInputContainer}>
-                    <Text style={styles.inputLabel}>{validationStrings.MAX_MALE_PAR}</Text>
-                    <TextInput
-                      style={styles.formatInput}
-                      keyboardType="numeric"
-                      value={maxMaleParticipants1v1}
-                      onChangeText={setMaxMaleParticipants1v1}
-                      placeholder="Enter number"
-                      placeholderTextColor={Colors.text_lighter}
-                    />
-                  </View>
-                  <View style={styles.formatInputContainer}>
-                    <Text style={styles.inputLabel}>{validationStrings.MAX_FEMALE_PAR}</Text>
-                    <TextInput
-                      style={styles.formatInput}
-                      keyboardType="numeric"
-                      value={maxFemaleParticipants1v1}
-                      onChangeText={setMaxFemaleParticipants1v1}
-                      placeholder="Enter number"
-                      placeholderTextColor={Colors.text_lighter}
-                    />
-                  </View>
-                </>
+                <View style={styles.formatInputContainer}>
+                  <Text style={styles.inputLabel}>{validationStrings.MAX_TOTAL_PARTICIPANTS}</Text>
+                  <TextInput
+                    style={styles.formatInput}
+                    keyboardType="numeric"
+                    value={maxTotalParticipants}
+                    onChangeText={setMaxTotalParticipants}
+                    placeholder={validationStrings.ENTER_TOTAL_NUMBER}
+                    placeholderTextColor={Colors.text_lighter}
+                  />
+                  <Text style={styles.helperText}>
+                    Current: {format1v1?.registeredMaleCount || 0} males, {format1v1?.registeredFemaleCount || 0} females
+                  </Text>
+                </View>
               )}
             </View>
           )}
@@ -307,11 +352,11 @@ const EditEventScreen = () => {
                   {format2v2Available && <Icon name="check" size={18} color={Colors.white} />}
                 </View>
                 <View style={styles.formatInfo}>
-                  <Text style={styles.formatLabel}>{validationStrings.TVT_FORMAT}</Text>
+                  <Text style={styles.formatLabel}>⚽ {validationStrings.TVT_FORMAT}</Text>
                   <Text style={styles.formatDescription}>
-                    Team matches (Admin creates teams)
+                    {validationStrings.TEAM_CREATE}
                     {format2v2 && getTotalRegistered(format2v2) > 0 &&
-                      ` • ${format2v2.registeredMaleCount}M / ${format2v2.registeredFemaleCount}F registered`}
+                      ` ${validationStrings.DIVIDER_DOT} ${format2v2.registeredMaleCount}M / ${format2v2.registeredFemaleCount}F ${validationStrings.REGISTERED_LABEL}`}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -325,7 +370,7 @@ const EditEventScreen = () => {
                       keyboardType="numeric"
                       value={maxMaleParticipants2v2}
                       onChangeText={setMaxMaleParticipants2v2}
-                      placeholder="Enter even number"
+                      placeholder={validationStrings.ENTER_EVEN_NUMBER}
                       placeholderTextColor={Colors.text_lighter}
                     />
                     <Text style={styles.helperText}>
@@ -339,12 +384,61 @@ const EditEventScreen = () => {
                       keyboardType="numeric"
                       value={maxFemaleParticipants2v2}
                       onChangeText={setMaxFemaleParticipants2v2}
-                      placeholder="Enter even number"
+                      placeholder={validationStrings.ENTER_EVEN_NUMBER}
                       placeholderTextColor={Colors.text_lighter}
                     />
                     <Text style={styles.helperText}>
                       {validationStrings.LIMIT_RULES}
                     </Text>
+                  </View>
+                </>
+              )}
+            </View>
+          )}
+
+          {!isFoosball && !isChessGame && (
+            <View style={styles.formatCard}>
+              <TouchableOpacity
+                style={styles.formatCheckbox}
+                onPress={toggleFormat1v1}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, format1v1Available && styles.checkboxActive]}>
+                  {format1v1Available && <Icon name="check" size={18} color={Colors.white} />}
+                </View>
+                <View style={styles.formatInfo}>
+                  <Text style={styles.formatLabel}>{validationStrings.OVO_FORMAT}</Text>
+                  <Text style={styles.formatDescription}>
+                    {validationStrings.INDIVIDUAL_MATCHS}
+                    {format1v1 && getTotalRegistered(format1v1) > 0 &&
+                      ` ${validationStrings.DIVIDER_DOT} ${format1v1.registeredMaleCount}M / ${format1v1.registeredFemaleCount}F ${validationStrings.REGISTERED_LABEL}`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {format1v1Available && (
+                <>
+                  <View style={styles.formatInputContainer}>
+                    <Text style={styles.inputLabel}>{validationStrings.MAX_MALE_PAR}</Text>
+                    <TextInput
+                      style={styles.formatInput}
+                      keyboardType="numeric"
+                      value={maxMaleParticipants1v1}
+                      onChangeText={setMaxMaleParticipants1v1}
+                      placeholder={validationStrings.ENTER_NUMBER_PLACEHOLDER}
+                      placeholderTextColor={Colors.text_lighter}
+                    />
+                  </View>
+                  <View style={styles.formatInputContainer}>
+                    <Text style={styles.inputLabel}>{validationStrings.MAX_FEMALE_PAR}</Text>
+                    <TextInput
+                      style={styles.formatInput}
+                      keyboardType="numeric"
+                      value={maxFemaleParticipants1v1}
+                      onChangeText={setMaxFemaleParticipants1v1}
+                      placeholder={validationStrings.ENTER_NUMBER_PLACEHOLDER}
+                      placeholderTextColor={Colors.text_lighter}
+                    />
                   </View>
                 </>
               )}

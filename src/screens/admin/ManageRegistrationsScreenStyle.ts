@@ -6,6 +6,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.Background_color,
   },
+  fixedHeaderSection: {
+    backgroundColor: Colors.white,
+    elevation: 4,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    zIndex: 10,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -28,8 +37,6 @@ const styles = StyleSheet.create({
   filterContainer: {
     maxHeight: 60,
     backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.headerBorder,
   },
   filterContent: {
     paddingHorizontal: 16,
@@ -366,7 +373,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.white,
   },
-
   teamSuggestionsSection: {
     marginBottom: 16,
   },
@@ -374,7 +380,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -386,7 +391,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
-    marginHorizontal: 16,
     marginBottom: 12,
     borderWidth: 2,
     borderColor: Colors.stats_background,

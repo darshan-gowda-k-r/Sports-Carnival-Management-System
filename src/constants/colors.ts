@@ -60,8 +60,13 @@ export default {
   COLOR_ORANGE: '#F59E0B',
   COLOR_PURPLE: '#8B5CF6',
 
+
   border_light: '#E5E7EB',
   border_lighter: '#D1D5DB',
+  reg_back : '#E8F5E9',
+  icon_back : '#FFEBEE',
+  icon_schedule : '#FFF4E6',
+  badge_test : '#A5D6A7',
   border_bottom : '#E5E7EB',
   bg_light: '#F9FAFB',
   bg_blue_light: '#EEF2FF',
@@ -71,6 +76,7 @@ export default {
   bg_red_light: '#FEE2E2',
   bg_yellow: '#FEF3C7',
   bg_blue: '#EFF6FF',
+  cancel_button : '#FFCDD2',
   bg_alpha_white_20: 'rgba(255, 255, 255, 0.2)',
 
   status_pending: '#F59E0B',
@@ -106,6 +112,8 @@ export default {
   process_border: '#BBF7D0',
   process_title: '#166534',
   process_number_bg: '#22C55E',
+  rejection_box : '#FFF3E0',
+  rej_box_back : '#FFE0B2',
   process_text: '#166534',
   FEMALE_GENDER_BADGE : '#FCE7F3',
 

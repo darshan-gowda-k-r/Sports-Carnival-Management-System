@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { registrationApiService } from '../api/registrationApiService';
 import { eventApiService } from '../api/eventApiService';
 import { teamApiService } from '../api/teamApiService';
+import { useAuth } from '../context/authContext';
 import { ParticipantRegistration, RegistrationStatus } from '../models/participantRegistration';
 import { Event } from '../models/event';
 import { PlayFormat } from '../models/event';
@@ -27,13 +28,16 @@ interface EventFormatGroup {
 
 export const useManageRegistrationsViewModel = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { user } = useAuth();
+  const role = route.params?.role;
+
   const [registrations, setRegistrations] = useState<RegistrationWithEvent[]>([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState<RegistrationWithEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState<FilterType>(validationStrings.PENDING);
+  const [filter, setFilter] = useState<FilterType>('PENDING');
   const [searchQuery, setSearchQuery] = useState('');
-  const [adminEmail] = useState(validationStrings.ADMIN_EMAIL);
 
   const [eventFormatGroups, setEventFormatGroups] = useState<EventFormatGroup[]>([]);
 
@@ -82,10 +86,18 @@ export const useManageRegistrationsViewModel = () => {
         })
       );
 
-      setRegistrations(regsWithEvents);
-      applyFilters(regsWithEvents, filter, searchQuery);
+      let filteredRegs = regsWithEvents;
+      if (role === validationStrings.ORGANIZER) {
+        const currentOrganizerId = user?.email || user?.id;
+        filteredRegs = regsWithEvents.filter(
+          reg => reg.eventDetails?.organizerId === currentOrganizerId
+        );
+      }
 
-      await calculateEventFormatGroups(regsWithEvents);
+      setRegistrations(filteredRegs);
+      applyFilters(filteredRegs, filter, searchQuery);
+
+      await calculateEventFormatGroups(filteredRegs);
     } catch (error) {
       console.error(validationStrings.FAILED_TO_LOAD_REGISTRATIONS, error);
       Alert.alert(validationStrings.ERROR, validationStrings.FAILED_TO_LOAD_REGISTRATIONS_MESSAGE);
@@ -113,8 +125,19 @@ export const useManageRegistrationsViewModel = () => {
   ) => {
     let filtered = regs;
 
-    if (statusFilter !== validationStrings.ALL) {
-      filtered = filtered.filter(reg => reg.status === statusFilter);
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter(reg => {
+        switch (statusFilter) {
+          case 'PENDING':
+            return reg.status === RegistrationStatus.PENDING;
+          case 'APPROVED':
+            return reg.status === RegistrationStatus.APPROVED;
+          case 'REJECTED':
+            return reg.status === RegistrationStatus.REJECTED;
+          default:
+            return true;
+        }
+      });
     }
 
     if (query.trim()) {
@@ -150,9 +173,11 @@ export const useManageRegistrationsViewModel = () => {
         return;
       }
 
+      const approverEmail = user?.email || validationStrings.ADMIN_EMAIL;
+
       await registrationApiService.approveRegistration(
         registration.id,
-        adminEmail
+        approverEmail
       );
 
       await eventApiService.registerTeam(
@@ -182,9 +207,11 @@ export const useManageRegistrationsViewModel = () => {
     }
 
     try {
+      const rejecterEmail = user?.email || validationStrings.ADMIN_EMAIL;
+
       await registrationApiService.rejectRegistration(
         selectedRegistration.id,
-        adminEmail,
+        rejecterEmail,
         rejectionReason
       );
 
@@ -219,6 +246,8 @@ export const useManageRegistrationsViewModel = () => {
             let successCount = 0;
             let failCount = 0;
 
+            const approverEmail = user?.email || validationStrings.ADMIN_EMAIL;
+
             for (const reg of pendingRegs) {
               try {
                 const isFull = await eventApiService.isFormatFull(
@@ -227,7 +256,7 @@ export const useManageRegistrationsViewModel = () => {
                 );
 
                 if (!isFull) {
-                  await registrationApiService.approveRegistration(reg.id, adminEmail);
+                  await registrationApiService.approveRegistration(reg.id, approverEmail);
                   await eventApiService.registerTeam(reg.eventId, reg.format);
                   successCount++;
                 } else {

@@ -29,10 +29,6 @@ export const useTeamManagementViewModel = (role: string) => {
         const myEventIds = events
           .filter(e => e.organizerId === user?.email)
           .map(e => e.id);
-        allTeams = await teamApiService.getPendingTeamsForOrganizer(
-          user?.email || '',
-          myEventIds
-        );
         const allTeamsForEvents = await teamApiService.getAllTeams();
         allTeams = allTeamsForEvents.filter(t => myEventIds.includes(t.eventId));
       }

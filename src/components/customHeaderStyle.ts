@@ -3,11 +3,12 @@ import Colors from '../constants/colors';
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
+    minHeight: 60,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingVertical: 8,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray + '30',
@@ -24,16 +25,16 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   centerSection: {
-    flex: 2,
+    flex: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 8,
   },
   rightSection: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 4,
   },
 
   backButton: {
@@ -83,18 +84,22 @@ const styles = StyleSheet.create({
   deleteIcon: {
     color: Colors.error,
   },
+  logoutIcon: {
+    color: Colors.error,
+  },
 
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
     color: Colors.black,
     textAlign: 'center',
+    flexShrink: 1,
   },
   roleBadge: {
-    marginTop: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+    marginTop: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 10,
   },
   adminBadge: {
     backgroundColor: Colors.error,
@@ -109,7 +114,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gray,
   },
   roleBadgeText: {
-    fontSize: 10,
+    fontSize: 9,
     color: Colors.white,
     fontWeight: 'bold',
     textTransform: 'uppercase',

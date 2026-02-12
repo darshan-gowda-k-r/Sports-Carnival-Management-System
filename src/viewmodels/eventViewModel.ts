@@ -39,7 +39,16 @@ export const useEventViewModel = () => {
     setLoading(true);
     setError(null);
     try {
-      const updatedEvent = { ...event, id };
+      const existingEvent = events.find(e => e.id === id);
+
+      const updatedEvent = {
+        ...event,
+        id,
+        organizerId: existingEvent?.organizerId,
+        createdAt: existingEvent?.createdAt,
+        isDefault: existingEvent?.isDefault,
+      };
+
       await eventApiService.updateEvent(updatedEvent);
       setEvents(prev =>
         prev.map(e => (e.id === id ? updatedEvent : e))

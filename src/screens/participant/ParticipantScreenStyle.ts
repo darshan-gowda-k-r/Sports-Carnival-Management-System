@@ -45,22 +45,8 @@ export default StyleSheet.create({
     opacity: 0.9,
     lineHeight: 20,
   },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: Colors.bg_alpha_white_20,
-    gap: 6,
-  },
-  logoutText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.error,
-  },
   bannerIcon: {
-    marginLeft: 12,
+    opacity: 0.3,
   },
 
   statsRow: {

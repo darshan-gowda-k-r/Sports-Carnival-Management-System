@@ -65,6 +65,12 @@ export const useParticipantHomeViewModel = () => {
     });
   }, [navigation]);
 
+  const navigateToFixtures = useCallback(() => {
+    navigation.navigate(validationStrings.SCREEN_VIEW_FIXTURES, {
+      role: validationStrings.PARTICIPANT,
+    });
+  }, [navigation]);
+
   const quickActions: QuickAction[] = [
     {
       id: 1,
@@ -84,11 +90,11 @@ export const useParticipantHomeViewModel = () => {
     },
     {
       id: 3,
-      title: validationStrings.MY_MATCHES_TITLE,
-      subtitle: validationStrings.MY_MATCHES_SUBTITLE,
-      icon: validationStrings.ICON_TROPHY,
+      title: validationStrings.FIXTURES,
+      subtitle: validationStrings.MANAGE_FIXTURES,
+      icon: validationStrings.SPORTS_SOCCER,
       color: Colors.COLOR_ORANGE,
-      onPress: navigateToMyMatches,
+      onPress: navigateToFixtures,
     },
     {
       id: 4,

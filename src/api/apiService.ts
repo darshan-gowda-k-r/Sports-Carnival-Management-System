@@ -44,6 +44,28 @@ const saveUsers = async (users: StoredUser[]) => {
   }
 };
 
+const generateTempPassword = (): string => {
+  const length = 12;
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const special = '!@#$%^&*';
+  const allChars = uppercase + lowercase + numbers + special;
+
+  let password = '';
+
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += special[Math.floor(Math.random() * special.length)];
+
+  for (let i = password.length; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+};
+
 export const ApiService = {
   initialize: async () => {
     await initializeUsers();
@@ -108,6 +130,25 @@ export const ApiService = {
 
     const { password: _, ...userData } = newUser;
     return userData;
+  },
+
+  forgotPassword: async (email: string): Promise<string> => {
+    const users = await getStoredUsers();
+
+    const userIndex = users.findIndex(
+      (user) => user.email.toLowerCase() === email.toLowerCase()
+    );
+
+    if (userIndex === -1) {
+      throw new Error(validationStrings.NO_ACCOUNT_EMAIL);
+    }
+
+    const tempPassword = generateTempPassword();
+
+    users[userIndex].password = tempPassword;
+    await saveUsers(users);
+
+    return tempPassword;
   },
 
   getAllUsers: async (): Promise<User[]> => {
@@ -175,4 +216,3 @@ export const ApiService = {
     await saveUsers(users);
   },
 };
-

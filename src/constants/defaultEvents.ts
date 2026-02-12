@@ -13,8 +13,8 @@ export const defaultEvents: Event[] = [
     title: 'Carrom Championship',
     sportType: 'Carrom',
     description: 'Singles carrom tournament with separate male and female categories',
-    registrationDeadline: getDateDaysFromNow(0),
-    matchDate: getDateDaysFromNow(0),
+    registrationDeadline: getDateDaysFromNow(10),
+    matchDate: getDateDaysFromNow(20),
     location: 'Indoor Hall A',
     status: 'UPCOMING',
     availableFormats: [
@@ -67,8 +67,8 @@ export const defaultEvents: Event[] = [
       {
         format: '1v1',
         isAvailable: true,
-        maxMaleParticipants: 32,
-        maxFemaleParticipants: 32,
+        maxMaleParticipants: 4,
+        maxFemaleParticipants: 4,
         registeredMaleCount: 0,
         registeredFemaleCount: 0,
       },

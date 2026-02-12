@@ -3,6 +3,8 @@ import { Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useEvents } from '../context/eventContext';
 import { useAuth } from '../context/authContext';
+import { registrationApiService } from '../api/registrationApiService';
+import { ApiService } from '../api/apiService';
 import { PlayFormat } from '../models/event';
 import Colors from '../constants/colors';
 import { headerStrings, validationStrings } from '../constants/validationStrings';
@@ -30,6 +32,7 @@ export const useAdminHomeViewModel = () => {
 
   const [totalEvents, setTotalEvents] = useState(0);
   const [totalRegistrations, setTotalRegistrations] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [showCreateTeamsModal, setShowCreateTeamsModal] = useState(false);
   const [eventFormatOptions, setEventFormatOptions] = useState<EventFormatOption[]>([]);
 
@@ -40,28 +43,31 @@ export const useAdminHomeViewModel = () => {
     };
   }, []);
 
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const [allRegistrations, allUsers] = await Promise.all([
+        registrationApiService.getAllRegistrations(),
+        ApiService.getAllUsers(),
+      ]);
+
+      if (isMountedRef.current) {
+        setTotalRegistrations(allRegistrations.length);
+        setTotalUsers(allUsers.length);
+      }
+    } catch (error) {
+      console.error(validationStrings.FAILED_TO_LOAD_DASHBOARD, error);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       loadEvents();
-    }, [loadEvents])
+      loadDashboardData();
+    }, [loadEvents, loadDashboardData])
   );
 
   useEffect(() => {
     setTotalEvents(events.length);
-
-    const registrations = events.reduce((total, event) => {
-      const eventRegistrations = event.availableFormats.reduce(
-        (sum, format) => {
-          const maleCount = format.registeredMaleCount || 0;
-          const femaleCount = format.registeredFemaleCount || 0;
-          return sum + maleCount + femaleCount;
-        },
-        0
-      );
-      return total + eventRegistrations;
-    }, 0);
-
-    setTotalRegistrations(registrations);
 
     const options: EventFormatOption[] = [];
     events.forEach(event => {
@@ -168,11 +174,11 @@ export const useAdminHomeViewModel = () => {
     },
     {
       id: 6,
-      title: validationStrings.SCHEDULE_RESULT,
-      subtitle: validationStrings.MATCH_SCHEDULE,
-      icon: validationStrings.ICON_SCHEDULE,
+      title: validationStrings.FIXTURES,
+      subtitle: validationStrings.MANAGE_FIXTURES,
+      icon: validationStrings.SPORTS_SOCCER,
       color: Colors.schedule_color,
-      onPress: () => navigation.navigate(validationStrings.SCREEN_SCHEDULES_RESULTS, { role: validationStrings.ADMIN }),
+      onPress: () => navigation.navigate(validationStrings.SCREEN_VIEW_FIXTURES, { role: validationStrings.ADMIN }),
     },
     {
       id: 7,
@@ -195,6 +201,7 @@ export const useAdminHomeViewModel = () => {
   return {
     totalEvents,
     totalRegistrations,
+    totalUsers,
     showCreateTeamsModal,
     eventFormatOptions,
     menuItems,

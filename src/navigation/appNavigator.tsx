@@ -9,6 +9,8 @@ import ParticipantHomeScreen from '../screens/participant/ParticipantHomeScreen'
 import EventListScreen from '../screens/events/EventListScreen';
 import EventDetailsScreen from '../screens/events/EventDetailsScreen';
 import CreateEventScreen from '../screens/events/CreateEventScreen';
+import FixtureCreationScreen from '../screens/admin/FixtureCreationScreen';
+import ViewFixturesScreen from '../screens/common/ViewFixturesScreen';
 import EditEventScreen from '../screens/events/EditEventScreen';
 import UserManagementScreen from '../screens/admin/UserManagementScreen';
 import TeamManagementScreen from '../screens/admin/TeamManagementScreen';
@@ -20,6 +22,9 @@ import ManageRegistrationsScreen from '../screens/admin/ManageRegistrationsScree
 import CreateTeamsScreen from '../screens/admin/CreateTeamsScreen';
 import MyMatchesScreen from '../screens/participant/MyMatchesScreen';
 import MyTeamsScreen from '../screens/participant/MyTeamsScreen';
+
+import ReportsScreen from '../screens/admin/ReportsScreen';
+import SystemConfigScreen from '../screens/admin/SystemConfigScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -64,6 +69,12 @@ const AppNavigator = () => {
         <Stack.Screen name="UserManagement" component={UserManagementScreen} />
         <Stack.Screen name="TeamManagement" component={TeamManagementScreen} />
         <Stack.Screen name="RegisterForEvent" component={RegisterForEventScreen} />
+
+        <Stack.Screen name="Reports" component={ReportsScreen} />
+        <Stack.Screen name="SystemConfig" component={SystemConfigScreen} />
+
+        <Stack.Screen name="FixtureCreation" component={FixtureCreationScreen} />
+        <Stack.Screen name="ViewFixtures" component={ViewFixturesScreen} />
 
         <Stack.Screen name="IndividualRegistration" component={IndividualRegistrationScreen} />
         <Stack.Screen name="MyRegistrations" component={MyRegistrationsScreen} />

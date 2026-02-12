@@ -22,6 +22,10 @@ export const useMyRegistrationsViewModel = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const handleBack = useCallback(() => {
+    navigation.replace('ParticipantHome');
+  }, [navigation]);
+
   const loadRegistrations = useCallback(async () => {
     if (!user?.email) return;
 
@@ -142,6 +146,7 @@ export const useMyRegistrationsViewModel = () => {
     loading,
     refreshing,
 
+    handleBack,
     onRefresh,
     handleCancelRegistration,
     navigateToEventDetails,

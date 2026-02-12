@@ -53,9 +53,8 @@ const ParticipantHomeScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <CustomHeader
         title={validationStrings.PARTICIPANT_TITLE}
-        showProfile={true}
-        showNotifications={true}
-        notificationCount={2}
+        showLogout={true}
+        onLogoutPress={viewModel.handleLogout}
         userRole="PLAYER"
       />
 
@@ -72,14 +71,7 @@ const ParticipantHomeScreen = () => {
               {validationStrings.JOIN_EXCITING_TOURNAMENTS}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={viewModel.handleLogout}
-            activeOpacity={0.7}
-          >
-            <Icon name="logout" size={20} color={Colors.logout_icon} />
-            <Text style={styles.logoutText}>{validationStrings.LOGOUT}</Text>
-          </TouchableOpacity>
+          <Icon name="emoji-events" size={48} color={Colors.white} style={styles.bannerIcon} />
         </View>
 
         <View style={styles.statsRow}>

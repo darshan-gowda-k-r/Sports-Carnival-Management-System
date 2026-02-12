@@ -252,15 +252,18 @@ const styles = StyleSheet.create({
   
   modalOverlay: {
     flex: 1,
-    backgroundColor: Colors.black,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.Background_color,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 24,
-    maxHeight: '80%',
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    maxHeight: '85%',
+    minHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -271,7 +274,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.text_light,
+    color: Colors.text_dark,
   },
   modalSubtitle: {
     fontSize: 14,
@@ -299,7 +302,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.format_disabled_background,
+    backgroundColor: Colors.white,
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -360,6 +363,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     gap: 8,
+    marginTop: 8,
   },
   createButtonDisabled: {
     backgroundColor: Colors.text_lighter,
@@ -402,6 +406,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 6,
     gap: 6,
+  },
+  generateMatchesButtonDisabled: {
+    backgroundColor: Colors.text_lighter,
   },
   generateMatchesText: {
     fontSize: 14,

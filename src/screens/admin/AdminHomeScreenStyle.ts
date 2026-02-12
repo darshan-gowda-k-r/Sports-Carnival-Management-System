@@ -14,7 +14,6 @@ export default StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
-
   welcomeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -44,25 +43,10 @@ export default StyleSheet.create({
     color: Colors.gray,
     fontWeight: '400',
   },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: Colors.bg_red_light,
-    gap: 6,
-  },
-  logoutText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.bg_red,
-  },
-
   statsContainer: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   statCard: {
     flex: 1,
@@ -95,7 +79,6 @@ export default StyleSheet.create({
     color: Colors.gray,
     fontWeight: '500',
   },
-
   sectionHeader: {
     marginBottom: 16,
   },
@@ -104,7 +87,6 @@ export default StyleSheet.create({
     fontWeight: '700',
     color: Colors.black,
   },
-
   menuGrid: {
     gap: 12,
   },
@@ -112,14 +94,14 @@ export default StyleSheet.create({
     backgroundColor: Colors.white,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 18,
+    padding: 16,
     borderRadius: 14,
-    marginBottom: 4,
     shadowColor: Colors.shadow,
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 2,
+    marginBottom: 12,
   },
   menuIconContainer: {
     width: 56,
@@ -128,35 +110,33 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
-    flexShrink: 0,
   },
   menuTextContainer: {
     flex: 1,
-    minWidth: 0,
   },
   menuText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.black,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   menuSubtext: {
     fontSize: 13,
     color: Colors.gray,
-    fontWeight: '400',
   },
-
   modalOverlay: {
     flex: 1,
-    backgroundColor: Colors.shadow,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    maxHeight: '70%',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -175,38 +155,33 @@ export default StyleSheet.create({
     marginBottom: 20,
   },
   eventFormatList: {
-    maxHeight: 500,
+    marginTop: 8,
   },
   eventFormatOption: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: Colors.bg_light,
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.headerBorder,
   },
   eventFormatLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    minWidth: 0,
   },
   eventFormatIcon: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: Colors.INFOBOX_BACK,
+    backgroundColor: Colors.stats_background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-    flexShrink: 0,
   },
   eventFormatInfo: {
     flex: 1,
-    minWidth: 0,
   },
   eventFormatTitle: {
     fontSize: 16,
@@ -221,11 +196,11 @@ export default StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
   emptyText: {
     fontSize: 14,
-    color: Colors.text_lighter,
+    color: Colors.text_light,
     marginTop: 12,
   },
 });

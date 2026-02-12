@@ -91,6 +91,63 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 
+  formatInfoCard: {
+    backgroundColor: Colors.format_selected_background,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: Colors.format_selected_border,
+  },
+  formatInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  formatInfoContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  formatInfoTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.format_title,
+    marginBottom: 4,
+  },
+  formatInfoDesc: {
+    fontSize: 14,
+    color: Colors.format_description,
+    lineHeight: 20,
+  },
+  availabilityCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 10,
+    padding: 12,
+  },
+  availabilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.format_border,
+  },
+  availabilityText: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.input_text,
+    fontWeight: '600',
+    marginLeft: 10,
+  },
+  availabilityBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  availabilityBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+
   formatOption: {
     borderWidth: 2,
     borderColor: Colors.format_border,
@@ -179,6 +236,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.badge_spots_text,
+  },
+
+  genderStatsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.format_border,
+  },
+  genderStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  genderStatText: {
+    fontSize: 13,
+    color: Colors.format_description,
+    fontWeight: '500',
+  },
+  totalStatsContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.format_border,
+  },
+  totalStatsText: {
+    fontSize: 13,
+    color: Colors.format_description,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 
   userInfoCard: {

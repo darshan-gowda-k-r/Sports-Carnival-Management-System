@@ -9,6 +9,7 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomHeader from '../../components/customHeader';
 import { RegistrationStatus } from '../../models/participantRegistration';
@@ -23,6 +24,8 @@ import Colors from '../../constants/colors';
 import { headerStrings, validationStrings } from '../../constants/validationStrings';
 
 const ManageRegistrationsScreen = () => {
+  const route = useRoute<any>();
+  const role = route.params?.role || validationStrings.ADMIN;
   const viewModel = useManageRegistrationsViewModel();
 
   const renderFilterButton = (filterType: FilterType, label: string, count: number) => {
@@ -183,52 +186,54 @@ const ManageRegistrationsScreen = () => {
       <CustomHeader
         title={headerStrings.MANAGE_REGISTRATIONS}
         showBackButton={true}
-        userRole={validationStrings.ADMIN}
+        userRole={role}
       />
 
-      <View style={styles.searchContainer}>
-        <Icon name="search" size={20} color={Colors.text_lighter} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={validationStrings.SEARCH_PLACEHOLDER}
-          value={viewModel.searchQuery}
-          onChangeText={viewModel.setSearchQuery}
-          placeholderTextColor={Colors.text_lighter}
-        />
-        {viewModel.searchQuery.length > 0 && (
-          <TouchableOpacity onPress={viewModel.clearSearch}>
-            <Icon name="close" size={20} color={Colors.text_lighter} />
-          </TouchableOpacity>
+      <View style={styles.fixedHeaderSection}>
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color={Colors.text_lighter} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={validationStrings.SEARCH_PLACEHOLDER}
+            value={viewModel.searchQuery}
+            onChangeText={viewModel.setSearchQuery}
+            placeholderTextColor={Colors.text_lighter}
+          />
+          {viewModel.searchQuery.length > 0 && (
+            <TouchableOpacity onPress={viewModel.clearSearch}>
+              <Icon name="close" size={20} color={Colors.text_lighter} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterContainer}
+          contentContainerStyle={styles.filterContent}
+        >
+          {renderFilterButton('ALL', validationStrings.ALL, viewModel.stats.total)}
+          {renderFilterButton('PENDING', validationStrings.PENDING, viewModel.stats.pending)}
+          {renderFilterButton('APPROVED', validationStrings.APPROVED, viewModel.stats.approved)}
+          {renderFilterButton('REJECTED', validationStrings.REJECTED, viewModel.stats.rejected)}
+        </ScrollView>
+
+        {viewModel.stats.pending > 0 && viewModel.filter === 'PENDING' && (
+          <View style={styles.bulkActionBar}>
+            <Text style={styles.bulkActionText}>
+              {viewModel.stats.pending} {validationStrings.PENDING_REGISTRATION}{viewModel.stats.pending !== 1 ? 's' : ''}
+            </Text>
+            <TouchableOpacity
+              style={styles.bulkApproveButton}
+              onPress={viewModel.handleBulkApprove}
+              activeOpacity={0.8}
+            >
+              <Icon name="done-all" size={20} color={Colors.white} />
+              <Text style={styles.bulkApproveText}>{validationStrings.APPROVE_ALL}</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterContainer}
-        contentContainerStyle={styles.filterContent}
-      >
-        {renderFilterButton('ALL', validationStrings.ALL, viewModel.stats.total)}
-        {renderFilterButton('PENDING', validationStrings.PENDING, viewModel.stats.pending)}
-        {renderFilterButton('APPROVED', validationStrings.APPROVED, viewModel.stats.approved)}
-        {renderFilterButton('REJECTED', validationStrings.REJECTED, viewModel.stats.rejected)}
-      </ScrollView>
-
-      {viewModel.stats.pending > 0 && viewModel.filter === 'PENDING' && (
-        <View style={styles.bulkActionBar}>
-          <Text style={styles.bulkActionText}>
-            {viewModel.stats.pending} {validationStrings.PENDING_REGISTRATION}{viewModel.stats.pending !== 1 ? 's' : ''}
-          </Text>
-          <TouchableOpacity
-            style={styles.bulkApproveButton}
-            onPress={viewModel.handleBulkApprove}
-            activeOpacity={0.8}
-          >
-            <Icon name="done-all" size={20} color={Colors.white} />
-            <Text style={styles.bulkApproveText}>{validationStrings.APPROVE_ALL}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {viewModel.loading ? (
         <View style={styles.loadingContainer}>

@@ -2,17 +2,19 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { registrationApiService } from '../api/registrationApiService';
 import { teamApiService } from '../api/teamApiService';
+import { Gender, UserRole } from '../models/user';
 import { useAuth } from '../context/authContext';
 import { Event } from '../models/event';
 import { RegistrationStatus } from '../models/participantRegistration';
 import Colors from '../constants/colors';
-import { headerStrings, validationStrings } from '../constants/validationStrings';
+import { validationStrings } from '../constants/validationStrings';
 
 export const useEventDetailsViewModel = () => {
+  type ParticipantStatus = 'in_team' | 'approved' | 'pending' | 'rejected' | 'not_registered';
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { user } = useAuth();
-  const { event, role }: { event: Event; role: string } = route.params;
+  const { event, role }: { event: Event; role: UserRole } = route.params;
   const isMountedRef = useRef(true);
 
   const [userRegistrations, setUserRegistrations] = useState<any[]>([]);
@@ -65,7 +67,7 @@ export const useEventDetailsViewModel = () => {
   }, [event.id, user]);
 
   useEffect(() => {
-    if (role === validationStrings.PART && user) {
+    if (role === UserRole.PARTICIPANT && user) {
       loadUserStatus();
     } else {
       setLoading(false);
@@ -94,38 +96,47 @@ export const useEventDetailsViewModel = () => {
     });
   }, [navigation, event]);
 
-  const getUserStatus = useCallback(() => {
-    if (userTeams.length > 0) {
-      return validationStrings.STATUS_IN_TEAM;
-    }
+  const getUserStatus = useCallback((): ParticipantStatus => {
+    if (userTeams.length > 0) return 'in_team';
 
-    const approvedRegs = userRegistrations.filter(r => r.status === RegistrationStatus.APPROVED);
-    const pendingRegs = userRegistrations.filter(r => r.status === RegistrationStatus.PENDING);
-    const rejectedRegs = userRegistrations.filter(r => r.status === RegistrationStatus.REJECTED);
+    if (userRegistrations.some(r => r.status === RegistrationStatus.APPROVED)) return 'approved';
+    if (userRegistrations.some(r => r.status === RegistrationStatus.PENDING)) return 'pending';
+    if (userRegistrations.some(r => r.status === RegistrationStatus.REJECTED)) return 'rejected';
 
-    if (approvedRegs.length > 0) return validationStrings.STATUS_APPROVED_LOWERCASE;
-    if (pendingRegs.length > 0) return validationStrings.STATUS_PENDING_LOWERCASE;
-    if (rejectedRegs.length > 0) return validationStrings.STATUS_REJECTED_LOWERCASE;
-
-    return validationStrings.STATUS_NOT_REGISTERED;
+    return 'not_registered';
   }, [userRegistrations, userTeams]);
 
   const getStatusStyle = useCallback((status: string) => {
     switch (status) {
-      case validationStrings.UPCOMING:
+      case 'UPCOMING':
         return { backgroundColor: Colors.COLOR_GREEN };
-      case validationStrings.ONGOING:
+      case 'ONGOING':
         return { backgroundColor: Colors.COLOR_ORANGE };
-      case validationStrings.COMPLETED:
+      case 'COMPLETED':
         return { backgroundColor: Colors.iconSecondary };
       default:
         return { backgroundColor: Colors.iconSecondary };
     }
   }, []);
 
+  const canUserRegister = useCallback((): boolean => {
+    if (!user?.gender) return true;
+
+    return event.availableFormats.some(format => {
+      if (!format.isAvailable) return false;
+
+      if (user.gender === Gender.MALE) {
+        return format.registeredMaleCount < format.maxMaleParticipants;
+      }
+
+      return format.registeredFemaleCount < format.maxFemaleParticipants;
+    });
+  }, [event.availableFormats, user?.gender]);
+
   return {
     event,
     role,
+    user,
     userRegistrations,
     userTeams,
     loading,
@@ -135,5 +146,6 @@ export const useEventDetailsViewModel = () => {
     navigateToFixtureCreation,
     getUserStatus,
     getStatusStyle,
+    canUserRegister,
   };
 };

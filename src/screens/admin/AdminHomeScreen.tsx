@@ -12,6 +12,7 @@ const AdminHomeScreen = () => {
   const {
     totalEvents,
     totalRegistrations,
+    totalUsers,
     showCreateTeamsModal,
     eventFormatOptions,
     menuItems,
@@ -43,9 +44,8 @@ const AdminHomeScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <CustomHeader
         title={validationStrings.ADMIN_TITLE}
-        showProfile={true}
-        showNotifications={true}
-        notificationCount={3}
+        showLogout={true}
+        onLogoutPress={handleLogout}
         userRole={validationStrings.ADMIN}
       />
 
@@ -62,14 +62,6 @@ const AdminHomeScreen = () => {
               {validationStrings.ADMIN_NOTE}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={handleLogout}
-            activeOpacity={0.7}
-          >
-            <Icon name={validationStrings.ICON_LOGOUT} size={20} color={Colors.bg_red} />
-            <Text style={styles.logoutText}>{headerStrings.LOGOUT}</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.statsContainer}>
@@ -85,7 +77,7 @@ const AdminHomeScreen = () => {
             <View style={[styles.statIconContainer, { backgroundColor: Colors.bg_green_light }]}>
               <Icon name={validationStrings.ICON_PEOPLE} size={24} color={Colors.status_approved} />
             </View>
-            <Text style={styles.statValue}>{validationStrings.TOTAL_USERS_COUNT}</Text>
+            <Text style={styles.statValue}>{totalUsers}</Text>
             <Text style={styles.statLabel}>{validationStrings.TOTAL_USERS}</Text>
           </View>
 

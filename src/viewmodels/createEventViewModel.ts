@@ -3,7 +3,13 @@ import { Alert, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useEvents } from '../context/eventContext';
 import { useAuth } from '../context/authContext';
-import { PlayFormat, validateMatchDate, allows2v2Format, allowsMixedGender } from '../models/event';
+import {
+  PlayFormat,
+  validateMatchDate,
+  allows2v2Format,
+  allowsMixedGender,
+  isChess
+} from '../models/event';
 import { validationStrings } from '../constants/validationStrings';
 
 export const useCreateEventViewModel = (role: string) => {
@@ -23,10 +29,13 @@ export const useCreateEventViewModel = (role: string) => {
 
   const [format1v1Available, setFormat1v1Available] = useState(true);
   const [format2v2Available, setFormat2v2Available] = useState(false);
+
   const [maxMaleParticipants1v1, setMaxMaleParticipants1v1] = useState('');
   const [maxFemaleParticipants1v1, setMaxFemaleParticipants1v1] = useState('');
   const [maxMaleParticipants2v2, setMaxMaleParticipants2v2] = useState('');
   const [maxFemaleParticipants2v2, setMaxFemaleParticipants2v2] = useState('');
+
+  const [maxTotalParticipants, setMaxTotalParticipants] = useState('');
 
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
   const [showMatchDatePicker, setShowMatchDatePicker] = useState(false);
@@ -44,17 +53,27 @@ export const useCreateEventViewModel = (role: string) => {
     if (!sportType) return;
 
     const isFoosball = allows2v2Format(sportType);
+    const isChessGame = isChess(sportType);
 
     if (isFoosball) {
       setFormat1v1Available(false);
       setFormat2v2Available(true);
       setMaxMaleParticipants1v1('');
       setMaxFemaleParticipants1v1('');
+      setMaxTotalParticipants('');
+    } else if (isChessGame) {
+      setFormat1v1Available(true);
+      setFormat2v2Available(false);
+      setMaxMaleParticipants1v1('');
+      setMaxFemaleParticipants1v1('');
+      setMaxMaleParticipants2v2('');
+      setMaxFemaleParticipants2v2('');
     } else {
       setFormat1v1Available(true);
       setFormat2v2Available(false);
       setMaxMaleParticipants2v2('');
       setMaxFemaleParticipants2v2('');
+      setMaxTotalParticipants('');
     }
   }, [sportType]);
 
@@ -76,12 +95,11 @@ export const useCreateEventViewModel = (role: string) => {
 
   const onDeadlineChange = useCallback((event: any, selectedDate?: Date) => {
     if (!selectedDate) return;
-
     setTempDeadline(selectedDate);
 
-    if (Platform.OS === 'android') {
+    if (Platform.OS === validationStrings.PLATFORM_ANDROID) {
       setShowDeadlinePicker(false);
-      if (event.type === 'set') {
+      if (event.type === validationStrings.EVENT_TYPE_SET) {
         setRegistrationDeadline(selectedDate);
         adjustMatchDateIfNeeded(selectedDate);
       }
@@ -104,12 +122,11 @@ export const useCreateEventViewModel = (role: string) => {
 
   const onMatchDateChange = useCallback((event: any, selectedDate?: Date) => {
     if (!selectedDate) return;
-
     setTempMatchDate(selectedDate);
 
-    if (Platform.OS === 'android') {
+    if (Platform.OS === validationStrings.PLATFORM_ANDROID) {
       setShowMatchDatePicker(false);
-      if (event.type === 'set') {
+      if (event.type === validationStrings.EVENT_TYPE_SET) {
         setMatchDate(selectedDate);
       }
     }
@@ -142,7 +159,7 @@ export const useCreateEventViewModel = (role: string) => {
 
   const validateForm = useCallback(() => {
     if (!title.trim()) {
-      Alert.alert(validationStrings.ERROR, validationStrings.TITLE);
+      Alert.alert(validationStrings.ERROR, validationStrings.TITLE_VALIDATION);
       return false;
     }
     if (!sportType.trim()) {
@@ -170,8 +187,18 @@ export const useCreateEventViewModel = (role: string) => {
     }
 
     const isFoosball = allows2v2Format(sportType);
+    const isChessGame = isChess(sportType);
 
-    if (isFoosball) {
+    if (isChessGame) {
+      if (!format1v1Available) {
+        Alert.alert(validationStrings.ERROR, validationStrings.CHESS_1V1_REQUIRED);
+        return false;
+      }
+      if (!maxTotalParticipants || Number(maxTotalParticipants) <= 0) {
+        Alert.alert(validationStrings.ERROR, validationStrings.CHESS_VALID_MAX_PARTICIPANTS);
+        return false;
+      }
+    } else if (isFoosball) {
       if (!format2v2Available) {
         Alert.alert(validationStrings.ERROR, validationStrings.FOOSBALL_FORMAT);
         return false;
@@ -225,6 +252,7 @@ export const useCreateEventViewModel = (role: string) => {
     maxFemaleParticipants1v1,
     maxMaleParticipants2v2,
     maxFemaleParticipants2v2,
+    maxTotalParticipants,
     currentOrganizerId,
   ]);
 
@@ -232,12 +260,25 @@ export const useCreateEventViewModel = (role: string) => {
     if (!validateForm()) return;
 
     const isFoosball = allows2v2Format(sportType);
+    const isChessGame = isChess(sportType);
     const isMixedGender = allowsMixedGender(sportType);
     const availableFormats = [];
 
-    if (format1v1Available && !isFoosball) {
+    if (isChessGame && format1v1Available) {
+      const total = Number(maxTotalParticipants);
+      const half = Math.floor(total / 2);
+
       availableFormats.push({
-        format: '1v1' as PlayFormat,
+        format: validationStrings.FORMAT_1V1 as PlayFormat,
+        isAvailable: true,
+        maxMaleParticipants: half,
+        maxFemaleParticipants: total - half,
+        registeredMaleCount: 0,
+        registeredFemaleCount: 0,
+      });
+    } else if (format1v1Available && !isFoosball) {
+      availableFormats.push({
+        format: validationStrings.FORMAT_1V1 as PlayFormat,
         isAvailable: true,
         maxMaleParticipants: Number(maxMaleParticipants1v1),
         maxFemaleParticipants: Number(maxFemaleParticipants1v1),
@@ -248,7 +289,7 @@ export const useCreateEventViewModel = (role: string) => {
 
     if (format2v2Available && isFoosball) {
       availableFormats.push({
-        format: '2v2' as PlayFormat,
+        format: validationStrings.FORMAT_2V2 as PlayFormat,
         isAvailable: true,
         maxMaleParticipants: Number(maxMaleParticipants2v2),
         maxFemaleParticipants: Number(maxFemaleParticipants2v2),
@@ -262,8 +303,8 @@ export const useCreateEventViewModel = (role: string) => {
         title: title.trim(),
         sportType: sportType.trim(),
         description: description.trim(),
-        registrationDeadline: registrationDeadline!.toISOString().split('T')[0],
-        matchDate: matchDate!.toISOString().split('T')[0],
+        registrationDeadline: registrationDeadline!.toISOString().split(validationStrings.DATE_SEPARATOR)[0],
+        matchDate: matchDate!.toISOString().split(validationStrings.DATE_SEPARATOR)[0],
         location: location.trim(),
         status: validationStrings.UPCOMING,
         availableFormats,
@@ -277,7 +318,7 @@ export const useCreateEventViewModel = (role: string) => {
           text: validationStrings.OK,
           onPress: () => {
             if (role === validationStrings.ORGANIZER) {
-              navigation.navigate('EventList', { role, filter: 'myEvents' });
+              navigation.navigate(validationStrings.SCREEN_EVENT_LIST, { role, filter: validationStrings.MY_EVENTS_FILTER });
             } else {
               navigation.goBack();
             }
@@ -285,7 +326,7 @@ export const useCreateEventViewModel = (role: string) => {
         },
       ]);
     } catch (err) {
-      console.error(validationStrings.FAILED_TO_CREATE_EVENTS, err);
+      console.error(validationStrings.FAILED_TO_CREATE_EVENT, err);
       Alert.alert(validationStrings.ERROR, validationStrings.FAILED_TO_CREATE);
     }
   }, [
@@ -297,6 +338,7 @@ export const useCreateEventViewModel = (role: string) => {
     maxFemaleParticipants1v1,
     maxMaleParticipants2v2,
     maxFemaleParticipants2v2,
+    maxTotalParticipants,
     title,
     description,
     registrationDeadline,
@@ -325,6 +367,7 @@ export const useCreateEventViewModel = (role: string) => {
     maxFemaleParticipants1v1,
     maxMaleParticipants2v2,
     maxFemaleParticipants2v2,
+    maxTotalParticipants,
 
     setTitle,
     setSportType,
@@ -334,6 +377,7 @@ export const useCreateEventViewModel = (role: string) => {
     setMaxFemaleParticipants1v1,
     setMaxMaleParticipants2v2,
     setMaxFemaleParticipants2v2,
+    setMaxTotalParticipants,
 
     formatDate,
     onDeadlineChange,

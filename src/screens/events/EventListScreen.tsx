@@ -29,6 +29,7 @@ const EventListScreen = () => {
     handleNavigateToEdit,
     handleDeleteWithStopPropagation,
     canManageEvent,
+    canDeleteEvent,
     isMyEvent,
     getStatusStyle,
     getEmptyStateTitle,
@@ -109,6 +110,7 @@ const EventListScreen = () => {
         renderItem={({ item }) => {
           const showMyEventBadge = isMyEvent(item) && role === validationStrings.ORGANIZER;
           const canManage = canManageEvent(item);
+          const canDelete = canDeleteEvent(item);
           const regOpen = isRegistrationOpen(item);
 
           return (
@@ -192,7 +194,7 @@ const EventListScreen = () => {
                     <Text style={styles.editButtonText}>{headerStrings.EDIT}</Text>
                   </TouchableOpacity>
 
-                  {role === validationStrings.ADMIN && (
+                  {canDelete && (
                     <TouchableOpacity
                       style={styles.deleteButton}
                       onPress={(e) => handleDeleteWithStopPropagation(item.id, () => e.stopPropagation())}
