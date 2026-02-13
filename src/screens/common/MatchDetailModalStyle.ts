@@ -104,6 +104,11 @@ export default StyleSheet.create({
     marginTop: 4,
     minWidth: 50,
   },
+  liveScoreDisplay: {
+    backgroundColor: Colors.live_score_back,
+    borderWidth: 2,
+    borderColor: Colors.live_score_display,
+  },
   winnerScoreDisplay: {
     backgroundColor: Colors.primary,
   },
@@ -128,6 +133,25 @@ export default StyleSheet.create({
     color: Colors.text_lighter,
   },
 
+  liveScoreBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.live_score_back,
+    padding: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.live_score_display,
+  },
+  liveScoreText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.live_score_text,
+  },
+
   winnerBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -143,6 +167,23 @@ export default StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: Colors.winner_text,
+  },
+
+  drawBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.drawBanner,
+    padding: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  drawText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text_light,
   },
 
   infoSection: {
@@ -234,6 +275,34 @@ export default StyleSheet.create({
     gap: 8,
   },
   liveButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+  updateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary,
+    padding: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  updateButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+  finishButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.success,
+    padding: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  finishButtonText: {
     fontSize: 15,
     fontWeight: '700',
     color: Colors.white,

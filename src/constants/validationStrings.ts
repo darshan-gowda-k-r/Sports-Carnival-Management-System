@@ -235,6 +235,10 @@ export const validationStrings = {
   PROVIDE_REASON: 'Please provide a reason',
   TEAM_REJECTED: 'Team rejected',
   REJECT_FAIL: 'Failed to reject team',
+  ERROR_LOADING_TEAMS : 'Error loading teams from storage:',
+  SCORE_UPDATED_SUCCESSFULLY : 'Match scores updated successfully',
+  ERROR_UPDATING_SCORE : 'Error updating scores:',
+  FAILED_TO_UPDATE_MATCH_SCORE : 'Failed to update match scores',
 
   SELECT_FORMAT: 'Please select a format',
   LOGIN_FIRST: 'Please login first',

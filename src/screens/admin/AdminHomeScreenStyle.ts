@@ -130,7 +130,7 @@ export default StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.Background_color,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,

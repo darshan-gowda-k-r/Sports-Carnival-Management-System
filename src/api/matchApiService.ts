@@ -1,4 +1,3 @@
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Match, MatchStatus } from '../models/match';
 import { PlayFormat } from '../models/event';
@@ -183,6 +182,28 @@ export const matchApiService = {
     status: MatchStatus
   ): Promise<Match> => {
     return await matchApiService.updateMatch(matchId, { status });
+  },
+
+  updateMatchScores: async (
+    matchId: string,
+    team1Score: number,
+    team2Score: number
+  ): Promise<Match> => {
+    const matches = await getStoredMatches();
+    const matchIndex = matches.findIndex(m => m.id === matchId);
+
+    if (matchIndex === -1) {
+      throw new Error(validationStrings.MATCHES_NOT_FOUND);
+    }
+
+    matches[matchIndex] = {
+      ...matches[matchIndex],
+      team1Score,
+      team2Score,
+    };
+
+    await saveMatches(matches);
+    return matches[matchIndex];
   },
 
   recordMatchResult: async (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ const ViewFixturesScreen = () => {
     role,
     userEmail,
     matches,
+    events,
     loading,
     refreshing,
     selectedGenderTab,
@@ -46,15 +47,11 @@ const ViewFixturesScreen = () => {
   const [isMatchDetailVisible, setIsMatchDetailVisible] = useState(false);
 
   const handleMatchPress = (match: Match) => {
-    console.log('Match pressed:', match.id);
-    setTimeout(() => {
-      setSelectedMatch(match);
-      setIsMatchDetailVisible(true);
-    }, 0);
+    setSelectedMatch(match);
+    setIsMatchDetailVisible(true);
   };
 
   const handleCloseMatchDetail = () => {
-    console.log('Closing modal');
     setIsMatchDetailVisible(false);
     setTimeout(() => {
       setSelectedMatch(null);
@@ -71,6 +68,12 @@ const ViewFixturesScreen = () => {
     const isMyMatch = role === validationStrings.PARTICIPANT &&
       myFixtures.some(m => m.id === match.id);
 
+    const hasScores = match.team1Score !== null && match.team1Score !== undefined &&
+                      match.team2Score !== null && match.team2Score !== undefined;
+
+    const event = events.find(e => e.id === match.eventId);
+    const eventTitle = event ? event.title : 'Event';
+
     return (
       <TouchableOpacity
         key={match.id}
@@ -81,6 +84,11 @@ const ViewFixturesScreen = () => {
         onPress={() => handleMatchPress(match)}
         activeOpacity={0.7}
       >
+        <View style={styles.eventTitleContainer}>
+          <Icon name={validationStrings.ICON_EVENT} size={16} color={Colors.primary} />
+          <Text style={styles.eventTitle} numberOfLines={1}>{eventTitle}</Text>
+        </View>
+
         <View style={styles.matchHeader}>
           <View style={styles.matchNumberBadge}>
             <Text style={styles.matchNumberText}>
@@ -104,13 +112,19 @@ const ViewFixturesScreen = () => {
           <View style={styles.teamBox}>
             <Icon name={validationStrings.ICON_GROUP} size={24} color={Colors.match_team_icon} />
             <Text style={styles.teamName} numberOfLines={1}>{match.team1Name}</Text>
-            {isCompleted && (
-              <Text style={[
-                styles.score,
-                match.winnerId === match.team1Id && styles.winnerScore
+            {(isCompleted || hasScores) && (
+              <View style={[
+                styles.scoreBox,
+                isCompleted && match.winnerId === match.team1Id && styles.winnerScoreBox,
+                !isCompleted && hasScores && styles.liveScoreBox,
               ]}>
-                {match.team1Score ?? '-'}
-              </Text>
+                <Text style={[
+                  styles.score,
+                  isCompleted && match.winnerId === match.team1Id && styles.winnerScore,
+                ]}>
+                  {match.team1Score ?? 0}
+                </Text>
+              </View>
             )}
           </View>
 
@@ -121,16 +135,31 @@ const ViewFixturesScreen = () => {
           <View style={styles.teamBox}>
             <Icon name={validationStrings.ICON_GROUP} size={24} color={Colors.match_team_icon} />
             <Text style={styles.teamName} numberOfLines={1}>{match.team2Name}</Text>
-            {isCompleted && (
-              <Text style={[
-                styles.score,
-                match.winnerId === match.team2Id && styles.winnerScore
+            {(isCompleted || hasScores) && (
+              <View style={[
+                styles.scoreBox,
+                isCompleted && match.winnerId === match.team2Id && styles.winnerScoreBox,
+                !isCompleted && hasScores && styles.liveScoreBox,
               ]}>
-                {match.team2Score ?? '-'}
-              </Text>
+                <Text style={[
+                  styles.score,
+                  isCompleted && match.winnerId === match.team2Id && styles.winnerScore,
+                ]}>
+                  {match.team2Score ?? 0}
+                </Text>
+              </View>
             )}
           </View>
         </View>
+
+        {!isCompleted && hasScores && (
+          <View style={styles.liveScoreIndicator}>
+            <Icon name="update" size={16} color={Colors.status_rejected} />
+            <Text style={styles.liveScoreText}>
+              Live Score: {match.team1Score} - {match.team2Score}
+            </Text>
+          </View>
+        )}
 
         {isCompleted && match.winnerId && (
           <View style={styles.winnerBanner}>
@@ -138,6 +167,13 @@ const ViewFixturesScreen = () => {
             <Text style={styles.winnerText}>
               {validationStrings.WINNER}: {match.winnerId === match.team1Id ? match.team1Name : match.team2Name}
             </Text>
+          </View>
+        )}
+
+        {isCompleted && !match.winnerId && hasScores && (
+          <View style={styles.drawBanner}>
+            <Icon name="handshake" size={20} color={Colors.text_light} />
+            <Text style={styles.drawText}>Match Drawn</Text>
           </View>
         )}
 
@@ -221,7 +257,7 @@ const ViewFixturesScreen = () => {
   };
 
   const renderParticipantTabs = () => {
-    if (role !== validationStrings.PARTICIPANT || isChessEvent) return null;
+    if (role !== validationStrings.PARTICIPANT && role !== 'PLAYER' || isChessEvent) return null;
 
     return (
       <ScrollView
@@ -301,8 +337,6 @@ const ViewFixturesScreen = () => {
     </ScrollView>
   );
 
-  console.log('Render - Modal visible:', isMatchDetailVisible, 'Selected match:', selectedMatch?.id);
-
   return (
     <>
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -348,25 +382,8 @@ const ViewFixturesScreen = () => {
           animationType={validationStrings.ANIMATION_SLIDE}
           onRequestClose={handleCloseMatchDetail}
         >
-          <View style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-            <View style={{
-              width: '90%',
-              maxWidth: 500,
-              height: '85%',
-              backgroundColor: Colors.white,
-              borderRadius: 20,
-              overflow: 'hidden',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 10,
-            }}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
               <MatchDetailModal
                 match={selectedMatch}
                 role={role}

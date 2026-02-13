@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,8 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   onClose,
   onUpdate,
 }) => {
+  const [currentMatch, setCurrentMatch] = useState<Match>(match);
+
   const [team1Score, setTeam1Score] = useState(
     match.team1Score?.toString() || ''
   );
@@ -38,12 +40,66 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    setCurrentMatch(match);
+    setTeam1Score(match.team1Score?.toString() || '');
+    setTeam2Score(match.team2Score?.toString() || '');
+  }, [match]);
+
   const canEditScore =
     role === validationStrings.ADMIN || role === validationStrings.ORGANIZER;
-  const isCompleted = match.status === MatchStatus.COMPLETED;
-  const isLive = match.status === MatchStatus.IN_PROGRESS;
+  const isCompleted = currentMatch.status === MatchStatus.COMPLETED;
+  const isLive = currentMatch.status === MatchStatus.IN_PROGRESS;
+  const hasScores = currentMatch.team1Score !== null && currentMatch.team1Score !== undefined &&
+                    currentMatch.team2Score !== null && currentMatch.team2Score !== undefined;
 
   const handleSaveScore = async () => {
+    const score1 = parseInt(team1Score);
+    const score2 = parseInt(team2Score);
+
+    if (isNaN(score1) || isNaN(score2)) {
+      Alert.alert(
+        validationStrings.ERROR,
+        validationStrings.ENTER_VALID_SCORES
+      );
+      return;
+    }
+
+    if (score1 < 0 || score2 < 0) {
+      Alert.alert(validationStrings.ERROR, validationStrings.SCORES_CANNOT_BE_NEGATIVE);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const updatedMatch = await matchApiService.updateMatchScores(
+        currentMatch.id,
+        score1,
+        score2
+      );
+
+      setCurrentMatch({
+        ...currentMatch,
+        team1Score: score1,
+        team2Score: score2,
+      });
+
+      Alert.alert(
+        validationStrings.SUCCESS,
+        validationStrings.SCORE_UPDATED_SUCCESSFULLY
+      );
+
+      onUpdate();
+    } catch (error) {
+      console.error(validationStrings.ERROR_UPDATING_SCORE, error);
+      Alert.alert(validationStrings.ERROR, validationStrings.FAILED_TO_UPDATE_MATCH_SCORE);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFinishMatch = async () => {
     const score1 = parseInt(team1Score);
     const score2 = parseInt(team2Score);
 
@@ -68,18 +124,18 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           { text: validationStrings.CANCEL, style: 'cancel' },
           {
             text: validationStrings.YES_SAVE_DRAW,
-            onPress: () => submitScore(score1, score2, null),
+            onPress: () => submitFinalResult(score1, score2, null),
           },
         ]
       );
       return;
     }
 
-    const winnerId = score1 > score2 ? match.team1Id : match.team2Id;
-    submitScore(score1, score2, winnerId);
+    const winnerId = score1 > score2 ? currentMatch.team1Id : currentMatch.team2Id;
+    submitFinalResult(score1, score2, winnerId);
   };
 
-  const submitScore = async (
+  const submitFinalResult = async (
     score1: number,
     score2: number,
     winnerId: string | null
@@ -88,7 +144,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
       setIsSubmitting(true);
 
       await matchApiService.recordMatchResult(
-        match.id,
+        currentMatch.id,
         score1,
         score2,
         winnerId || ''
@@ -111,10 +167,15 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   const handleMarkAsLive = async () => {
     try {
       setIsSubmitting(true);
-      await matchApiService.updateMatchStatus(match.id, MatchStatus.IN_PROGRESS);
+      await matchApiService.updateMatchStatus(currentMatch.id, MatchStatus.IN_PROGRESS);
+
+      setCurrentMatch({
+        ...currentMatch,
+        status: MatchStatus.IN_PROGRESS,
+      });
+
       Alert.alert(validationStrings.SUCCESS, validationStrings.MATCH_MARKED_LIVE);
       onUpdate();
-      onClose();
     } catch (error) {
       console.error(validationStrings.ERROR_SAVING_EVENTS, error);
       Alert.alert(validationStrings.ERROR, validationStrings.FAILED_TO_UPDATE_MATCH_STATUS);
@@ -124,7 +185,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   };
 
   const getStatusColor = () => {
-    switch (match.status) {
+    switch (currentMatch.status) {
       case MatchStatus.IN_PROGRESS:
         return Colors.status_rejected;
       case MatchStatus.SCHEDULED:
@@ -138,7 +199,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
     }
   };
 
-  console.log('MatchDetailModal rendering for match:', match.id, match.team1Name, validationStrings.VS.toLowerCase(), match.team2Name);
+  console.log('MatchDetailModal rendering for match:', currentMatch.id, currentMatch.team1Name, validationStrings.VS.toLowerCase(), currentMatch.team2Name);
 
   return (
     <View style={{ height: '100%', width: '100%', backgroundColor: Colors.white }}>
@@ -161,14 +222,14 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           <View style={styles.matchNumberBadge}>
             <Text style={styles.matchNumberText}>
               {validationStrings.MATCH_NUMBER}
-              {match.matchNumber || 1}
+              {currentMatch.matchNumber || 1}
             </Text>
           </View>
           <View
             style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}
           >
             {isLive && <View style={styles.livePulse} />}
-            <Text style={styles.statusText}>{match.status}</Text>
+            <Text style={styles.statusText}>{currentMatch.status}</Text>
           </View>
         </View>
 
@@ -178,21 +239,22 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
               <View style={styles.teamIconContainer}>
                 <Icon name={validationStrings.ICON_GROUP} size={28} color={Colors.primary} />
               </View>
-              <Text style={styles.teamName}>{match.team1Name}</Text>
-              {isCompleted && (
+              <Text style={styles.teamName}>{currentMatch.team1Name}</Text>
+              {(isCompleted || (hasScores && !isCompleted)) && (
                 <View
                   style={[
                     styles.scoreDisplay,
-                    match.winnerId === match.team1Id && styles.winnerScoreDisplay,
+                    isCompleted && currentMatch.winnerId === currentMatch.team1Id && styles.winnerScoreDisplay,
+                    !isCompleted && styles.liveScoreDisplay,
                   ]}
                 >
                   <Text
                     style={[
                       styles.scoreText,
-                      match.winnerId === match.team1Id && styles.winnerScoreText,
+                      isCompleted && currentMatch.winnerId === currentMatch.team1Id && styles.winnerScoreText,
                     ]}
                   >
-                    {match.team1Score ?? 0}
+                    {currentMatch.team1Score ?? 0}
                   </Text>
                 </View>
               )}
@@ -206,21 +268,22 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
               <View style={styles.teamIconContainer}>
                 <Icon name={validationStrings.ICON_GROUP} size={28} color={Colors.primary} />
               </View>
-              <Text style={styles.teamName}>{match.team2Name}</Text>
-              {isCompleted && (
+              <Text style={styles.teamName}>{currentMatch.team2Name}</Text>
+              {(isCompleted || (hasScores && !isCompleted)) && (
                 <View
                   style={[
                     styles.scoreDisplay,
-                    match.winnerId === match.team2Id && styles.winnerScoreDisplay,
+                    isCompleted && currentMatch.winnerId === currentMatch.team2Id && styles.winnerScoreDisplay,
+                    !isCompleted && styles.liveScoreDisplay,
                   ]}
                 >
                   <Text
                     style={[
                       styles.scoreText,
-                      match.winnerId === match.team2Id && styles.winnerScoreText,
+                      isCompleted && currentMatch.winnerId === currentMatch.team2Id && styles.winnerScoreText,
                     ]}
                   >
-                    {match.team2Score ?? 0}
+                    {currentMatch.team2Score ?? 0}
                   </Text>
                 </View>
               )}
@@ -228,14 +291,32 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           </View>
         </View>
 
-        {isCompleted && match.winnerId && (
+        {!isCompleted && hasScores && (
+          <View style={styles.liveScoreBanner}>
+            <Icon name="update" size={20} color={Colors.status_rejected} />
+            <Text style={styles.liveScoreText}>
+              Current Score: {currentMatch.team1Score} - {currentMatch.team2Score}
+            </Text>
+          </View>
+        )}
+
+        {isCompleted && currentMatch.winnerId && (
           <View style={styles.winnerBanner}>
             <Icon name={validationStrings.ICON_TROPHY} size={24} color={Colors.winner_icon} />
             <Text style={styles.winnerText}>
               {validationStrings.WINNER}:{' '}
-              {match.winnerId === match.team1Id
-                ? match.team1Name
-                : match.team2Name}
+              {currentMatch.winnerId === currentMatch.team1Id
+                ? currentMatch.team1Name
+                : currentMatch.team2Name}
+            </Text>
+          </View>
+        )}
+
+        {isCompleted && !currentMatch.winnerId && hasScores && (
+          <View style={styles.drawBanner}>
+            <Icon name="handshake" size={24} color={Colors.text_light} />
+            <Text style={styles.drawText}>
+              Match Drawn
             </Text>
           </View>
         )}
@@ -247,7 +328,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             <Icon name={validationStrings.ICON_EVENT} size={20} color={Colors.text_light} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>{validationStrings.DATE_LABEL}</Text>
-              <Text style={styles.infoValue}>{match.scheduledDate}</Text>
+              <Text style={styles.infoValue}>{currentMatch.scheduledDate}</Text>
             </View>
           </View>
 
@@ -255,7 +336,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             <Icon name="access-time" size={20} color={Colors.text_light} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>{validationStrings.TIME_LABEL}</Text>
-              <Text style={styles.infoValue}>{match.scheduledTime}</Text>
+              <Text style={styles.infoValue}>{currentMatch.scheduledTime}</Text>
             </View>
           </View>
 
@@ -263,7 +344,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             <Icon name="location-on" size={20} color={Colors.text_light} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>{validationStrings.VENUE_LABEL}</Text>
-              <Text style={styles.infoValue}>{match.venue}</Text>
+              <Text style={styles.infoValue}>{currentMatch.venue}</Text>
             </View>
           </View>
         </View>
@@ -274,7 +355,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
 
             <View style={styles.scoreInputsContainer}>
               <View style={styles.scoreInputWrapper}>
-                <Text style={styles.scoreInputLabel}>{match.team1Name}</Text>
+                <Text style={styles.scoreInputLabel}>{currentMatch.team1Name}</Text>
                 <TextInput
                   style={styles.scoreInput}
                   value={team1Score}
@@ -291,7 +372,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
               </View>
 
               <View style={styles.scoreInputWrapper}>
-                <Text style={styles.scoreInputLabel}>{match.team2Name}</Text>
+                <Text style={styles.scoreInputLabel}>{currentMatch.team2Name}</Text>
                 <TextInput
                   style={styles.scoreInput}
                   value={team2Score}
@@ -305,7 +386,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             </View>
 
             <View style={styles.actionButtons}>
-              {match.status === MatchStatus.SCHEDULED && (
+              {currentMatch.status === MatchStatus.SCHEDULED && (
                 <TouchableOpacity
                   style={styles.liveButton}
                   onPress={handleMarkAsLive}
@@ -318,7 +399,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
 
               <TouchableOpacity
                 style={[
-                  styles.saveButton,
+                  styles.updateButton,
                   isSubmitting && styles.saveButtonDisabled,
                 ]}
                 onPress={handleSaveScore}
@@ -328,9 +409,29 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                   <ActivityIndicator color={Colors.white} />
                 ) : (
                   <>
+                    <Icon name="save" size={20} color={Colors.white} />
+                    <Text style={styles.updateButtonText}>
+                      Save Score
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.finishButton,
+                  isSubmitting && styles.saveButtonDisabled,
+                ]}
+                onPress={handleFinishMatch}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color={Colors.white} />
+                ) : (
+                  <>
                     <Icon name={validationStrings.ICON_CHECK_CIRCLE} size={20} color={Colors.white} />
-                    <Text style={styles.saveButtonText}>
-                      {validationStrings.SAVE_FINISH_MATCH}
+                    <Text style={styles.finishButtonText}>
+                      Finish Match
                     </Text>
                   </>
                 )}

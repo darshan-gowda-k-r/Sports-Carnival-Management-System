@@ -60,7 +60,7 @@ const UserManagementScreen = () => {
         </View>
 
         <View style={styles.filterContainer}>
-          {([validationStrings.ALL, UserRole.ADMIN, UserRole.ORGANIZER, UserRole.PARTICIPANT] as const).map(role => (
+          {(['ALL', UserRole.ADMIN, UserRole.ORGANIZER, UserRole.PARTICIPANT] as const).map(role => (
             <TouchableOpacity
               key={role}
               style={[styles.filterButton, filterRole === role && styles.filterButtonActive]}

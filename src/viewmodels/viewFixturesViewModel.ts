@@ -32,21 +32,23 @@ export const useViewFixturesViewModel = () => {
     return event ? isChess(event.sportType) : false;
   }, [eventId, events]);
 
-  useEffect(() => {
-    loadUserEmail();
-    loadData();
-  }, []);
+  const getUserTeamIds = useCallback(
+    (allTeams: Team[]): string[] => {
+      if (!userEmail) return [];
 
-  const loadUserEmail = async () => {
-    try {
-      const email = await AsyncStorage.getItem('USER_EMAIL');
-      if (email) {
-        setUserEmail(email);
-      }
-    } catch (error) {
-      console.error(validationStrings.FAILED_TO_LOAD_EMAIL, error);
-    }
-  };
+      const userTeams = allTeams.filter(team =>
+        team.members.some(member =>
+          member.userId === userEmail ||
+          member.email === userEmail ||
+          member.userEmail === userEmail ||
+          member.id === userEmail
+        )
+      );
+
+      return userTeams.map(team => team.id);
+    },
+    [userEmail]
+  );
 
   const loadData = useCallback(async () => {
     try {
@@ -58,38 +60,54 @@ export const useViewFixturesViewModel = () => {
 
       allEvents = await eventApiService.getEvents();
 
+      try {
+        const teamsDataString = await AsyncStorage.getItem('TEAMS_DATA');
+        if (teamsDataString) {
+          allTeams = JSON.parse(teamsDataString);
+        }
+      } catch (storageError) {
+        console.error(validationStrings.ERROR_LOADING_TEAMS, storageError);
+      }
+
       if (role === validationStrings.ADMIN) {
         allMatches = await matchApiService.getAllMatches();
-        allTeams = await teamApiService.getAllTeams();
       } else if (role === validationStrings.ORGANIZER && organizerId) {
         allMatches = await matchApiService.getAllMatches();
-        allTeams = await teamApiService.getAllTeams();
 
         const organizerEventIds = allMatches
           .map(m => m.eventId)
           .filter((id, index, self) => self.indexOf(id) === index);
 
         allMatches = allMatches.filter(m => organizerEventIds.includes(m.eventId));
-      } else if (role === validationStrings.PARTICIPANT) {
+        if (allTeams.length > 0) {
+          allTeams = allTeams.filter(t => organizerEventIds.includes(t.eventId));
+        }
+      } else if (role === validationStrings.PARTICIPANT || role === 'PLAYER') {
         allMatches = await matchApiService.getAllMatches();
-        allTeams = await teamApiService.getAllTeams();
       } else if (eventId) {
         allMatches = await matchApiService.getMatchesByEvent(eventId);
-        allTeams = await teamApiService.getTeamsByEvent(eventId);
+        if (allTeams.length > 0) {
+          allTeams = allTeams.filter(t => t.eventId === eventId);
+        }
       } else {
         allMatches = await matchApiService.getAllMatches();
-        allTeams = await teamApiService.getAllTeams();
       }
 
       setMatches(allMatches);
       setTeams(allTeams);
       setEvents(allEvents);
 
-      if (role === validationStrings.PARTICIPANT && !isChessEvent()) {
+      if ((role === validationStrings.PARTICIPANT || role === 'PLAYER') && !isChessEvent()) {
         const userTeamIds = getUserTeamIds(allTeams);
-        const hasMyMatches = allMatches.some(
-          m => userTeamIds.includes(m.team1Id) || userTeamIds.includes(m.team2Id)
-        );
+
+        const myMatchesArray = allMatches.filter(m => {
+          const isInTeam = userTeamIds.includes(m.team1Id) || userTeamIds.includes(m.team2Id);
+          const isDirectMatch = userEmail && (m.team1Id === userEmail || m.team2Id === userEmail);
+          return isInTeam || isDirectMatch;
+        });
+
+        const hasMyMatches = myMatchesArray.length > 0;
+
         if (hasMyMatches) {
           setSelectedGenderTab('my');
         } else {
@@ -101,26 +119,42 @@ export const useViewFixturesViewModel = () => {
     } finally {
       setLoading(false);
     }
-  }, [role, eventId, organizerId]);
+  }, [role, eventId, organizerId, userEmail, isChessEvent, getUserTeamIds]);
+
+  useEffect(() => {
+    const loadEmail = async () => {
+      try {
+        const authenticatedUserString = await AsyncStorage.getItem('AUTHENTICATED_USER');
+
+        if (authenticatedUserString) {
+          const authenticatedUser = JSON.parse(authenticatedUserString);
+
+          const email = authenticatedUser.email ||
+                       authenticatedUser.userEmail ||
+                       authenticatedUser.userId ||
+                       authenticatedUser.id;
+
+          if (email) {
+            setUserEmail(email);
+          }
+        }
+      } catch (error) {
+        console.error(validationStrings.FAILED_TO_LOAD_EMAIL, error);
+      }
+    };
+
+    loadEmail();
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [userEmail, role, eventId, organizerId]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
   }, [loadData]);
-
-  const getUserTeamIds = useCallback(
-    (allTeams: Team[]): string[] => {
-      if (!userEmail) return [];
-
-      return allTeams
-        .filter(team =>
-          team.members.some(member => member.userId === userEmail)
-        )
-        .map(team => team.id);
-    },
-    [userEmail]
-  );
 
   const getTeamType = useCallback(
     (teamId: string): TeamType | null => {
@@ -145,18 +179,25 @@ export const useViewFixturesViewModel = () => {
   const mixedMatches = matches.filter(m => {
     const team1Type = getTeamType(m.team1Id);
     const team2Type = getTeamType(m.team2Id);
-    return team1Type === TeamType.MIXED || team2Type === TeamType.MIXED;
+    return team1Type === TeamType.MIXED ||
+           team2Type === TeamType.MIXED ||
+           (team1Type === TeamType.MALE && team2Type === TeamType.FEMALE) ||
+           (team1Type === TeamType.FEMALE && team2Type === TeamType.MALE);
   });
 
   const userTeamIds = getUserTeamIds(teams);
 
-  const myFixtures = matches.filter(
-    m => userTeamIds.includes(m.team1Id) || userTeamIds.includes(m.team2Id)
-  );
+  const myFixtures = matches.filter(m => {
+    const isInTeam = userTeamIds.includes(m.team1Id) || userTeamIds.includes(m.team2Id);
+    const isDirectMatch = userEmail && (m.team1Id === userEmail || m.team2Id === userEmail);
+    return isInTeam || isDirectMatch;
+  });
 
-  const otherFixtures = matches.filter(
-    m => !userTeamIds.includes(m.team1Id) && !userTeamIds.includes(m.team2Id)
-  );
+  const otherFixtures = matches.filter(m => {
+    const isInTeam = userTeamIds.includes(m.team1Id) || userTeamIds.includes(m.team2Id);
+    const isDirectMatch = userEmail && (m.team1Id === userEmail || m.team2Id === userEmail);
+    return !isInTeam && !isDirectMatch;
+  });
 
   const liveMatches = matches.filter(m => m.status === MatchStatus.IN_PROGRESS);
   const upcomingMatches = matches.filter(m => m.status === MatchStatus.SCHEDULED);
@@ -180,7 +221,7 @@ export const useViewFixturesViewModel = () => {
   const getMatchesForDisplay = useCallback(() => {
     let filtered = matches;
 
-    if (role === validationStrings.PARTICIPANT && !isChessEvent()) {
+    if ((role === validationStrings.PARTICIPANT || role === 'PLAYER') && !isChessEvent()) {
       if (selectedGenderTab === 'my') {
         filtered = myFixtures;
       } else if (selectedGenderTab === 'others') {
@@ -222,6 +263,7 @@ export const useViewFixturesViewModel = () => {
     role: role || validationStrings.PARTICIPANT,
     userEmail,
     matches,
+    events,
     loading,
     refreshing,
     selectedGenderTab,

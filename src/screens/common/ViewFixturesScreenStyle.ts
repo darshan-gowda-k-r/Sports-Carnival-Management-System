@@ -105,6 +105,21 @@ export default StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
+  eventTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border_lighter,
+  },
+  eventTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
   matchCard: {
     backgroundColor: Colors.white,
     borderRadius: 16,
@@ -192,13 +207,30 @@ export default StyleSheet.create({
     fontWeight: '600',
     color: Colors.text_dark,
   },
+  scoreBox: {
+    backgroundColor: Colors.bg_light,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    minWidth: 45,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  liveScoreBox: {
+    backgroundColor: Colors.live_score_back,
+    borderWidth: 2,
+    borderColor: Colors.live_score_display,
+  },
+  winnerScoreBox: {
+    backgroundColor: Colors.primary,
+  },
   score: {
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text_dark,
   },
   winnerScore: {
-    color: Colors.primary,
+    color: Colors.white,
   },
   vsContainer: {
     alignItems: 'center',
@@ -208,6 +240,24 @@ export default StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: Colors.text_lighter,
+  },
+  liveScoreIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.live_score_back,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.live_score_display,
+  },
+  liveScoreText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.live_score_text,
   },
   winnerBanner: {
     flexDirection: 'row',
@@ -223,6 +273,21 @@ export default StyleSheet.create({
     fontWeight: '600',
     color: Colors.winner_text,
     flex: 1,
+  },
+  drawBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.drawBanner,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  drawText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text_light,
   },
   matchDetails: {
     paddingTop: 16,
@@ -255,7 +320,6 @@ export default StyleSheet.create({
     color: Colors.text_lighter,
     fontWeight: '500',
   },
-
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -265,7 +329,7 @@ export default StyleSheet.create({
   modalContent: {
     width: '90%',
     maxWidth: 500,
-    maxHeight: '85%',
+    height: '85%',
     backgroundColor: Colors.white,
     borderRadius: 20,
     overflow: 'hidden',
