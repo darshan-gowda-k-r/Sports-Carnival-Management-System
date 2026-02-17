@@ -6,43 +6,201 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.Background_color,
   },
-
+  scrollView: {
+    flex: 1,
+  },
   scrollContainer: {
-    padding: 20,
+    flexGrow: 1,
+    padding: 16,
     paddingBottom: 40,
   },
-
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginBottom: 25,
-    textAlign: 'center',
-  },
-
-  card: {
+  welcomeSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: Colors.white,
-    paddingVertical: 20,
-    paddingHorizontal: 18,
-    borderRadius: 14,
-    marginBottom: 18,
-
-    shadowColor: 'shadow',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-
-    elevation: 5,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: Colors.shadow,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 3,
   },
-
-  cardText: {
+  welcomeContent: {
+    flex: 1,
+    marginRight: 12,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.black,
+    marginBottom: 6,
+  },
+  welcomeSubtitle: {
+    fontSize: 14,
+    color: Colors.gray,
+    fontWeight: '400',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: Colors.shadow,
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  statIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.black,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: Colors.gray,
+    fontWeight: '500',
+  },
+  sectionHeader: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.black,
   },
-
-  cardPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.97 }],
+  menuGrid: {
+    gap: 12,
+  },
+  menuCard: {
+    backgroundColor: Colors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 14,
+    shadowColor: Colors.shadow,
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
+    marginBottom: 12,
+  },
+  menuIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  menuTextContainer: {
+    flex: 1,
+  },
+  menuText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.black,
+    marginBottom: 4,
+  },
+  menuSubtext: {
+    fontSize: 13,
+    color: Colors.gray,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Colors.Background_color,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text_dark,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.text_light,
+    marginBottom: 20,
+  },
+  eventFormatList: {
+    marginTop: 8,
+  },
+  eventFormatOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.bg_light,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  eventFormatLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  eventFormatIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: Colors.stats_background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  eventFormatInfo: {
+    flex: 1,
+  },
+  eventFormatTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text_dark,
+    marginBottom: 4,
+  },
+  eventFormatSubtitle: {
+    fontSize: 13,
+    color: Colors.text_light,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: Colors.text_light,
+    marginTop: 12,
   },
 });

@@ -20,7 +20,34 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray,
     padding: 12,
     borderRadius: 8,
-    marginBottom: 12
+    marginBottom: 12,
+    color: Colors.black,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.gray,
+    borderRadius: 8,
+    marginBottom: 8,
+    paddingRight: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 12,
+    color: Colors.black,
+  },
+  eyeIcon: {
+    padding: 4,
+  },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: 16,
+  },
+  forgotPasswordText: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   logo: {
     width: 150,
@@ -48,6 +75,12 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: 'bold',
     fontSize: 18
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: Colors.gray,
+    textAlign: 'center',
   },
 });
 

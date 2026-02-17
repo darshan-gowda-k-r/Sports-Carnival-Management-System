@@ -1,128 +1,210 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Event, PlayFormat } from '../models/event';
 import { validationStrings } from '../constants/validationStrings';
+import { defaultEvents } from '../constants/defaultEvents';
 
+const EVENTS_KEY = 'EVENTS_DATA';
+const EVENTS_INITIALIZED_KEY = 'EVENTS_INITIALIZED';
 
-let events: Event[] = [
-  {
-    id: '1',
-    title: 'Carrom Championship',
-    sportType: 'Carrom',
-    description: 'Singles and doubles carrom tournament',
-    date: '2026-02-01',
-    location: 'Indoor Hall',
-    organizer: 'Sports Committee',
-    status: 'UPCOMING',
-    formats: [
-      { format: '1v1', teamSize: 1, maxTeams: 32, registeredTeams: 0 },
-      { format: '2v2', teamSize: 2, maxTeams: 16, registeredTeams: 0 },
-    ],
-  },
-  {
-    id: '2',
-    title: 'Table Tennis Open',
-    sportType: 'Table Tennis',
-    description: 'Singles and doubles table tennis competition',
-    date: '2026-02-03',
-    location: 'Sports Arena',
-    organizer: 'TT Club',
-    status: 'UPCOMING',
-    formats: [
-      { format: '1v1', teamSize: 1, maxTeams: 24, registeredTeams: 0 },
-      { format: '2v2', teamSize: 2, maxTeams: 12, registeredTeams: 0 },
-    ],
-  },
-  {
-    id: '3',
-    title: 'Badminton League',
-    sportType: 'Badminton',
-    description: 'Singles & doubles badminton league',
-    date: '2026-02-05',
-    location: 'Badminton Court',
-    organizer: 'Badminton Association',
-    status: 'UPCOMING',
-    formats: [
-      { format: '1v1', teamSize: 1, maxTeams: 32, registeredTeams: 0 },
-      { format: '2v2', teamSize: 2, maxTeams: 16, registeredTeams: 0 },
-    ],
-  },
-  {
-    id: '4',
-    title: 'Foosball Faceoff',
-    sportType: 'Foosball',
-    description: 'Singles and doubles foosball matches',
-    date: '2026-02-07',
-    location: 'Recreation Room',
-    organizer: 'Fun Games Club',
-    status: 'UPCOMING',
-    formats: [
-      { format: '1v1', teamSize: 1, maxTeams: 24, registeredTeams: 0 },
-      { format: '2v2', teamSize: 2, maxTeams: 12, registeredTeams: 0 },
-    ],
-  },
-  {
-    id: '5',
-    title: 'Snooker Masters',
-    sportType: 'Snooker',
-    description: 'Professional snooker singles tournament',
-    date: '2026-02-09',
-    location: 'Snooker Lounge',
-    organizer: 'Cue Sports Association',
-    status: 'UPCOMING',
-    formats: [
-      { format: '1v1', teamSize: 1, maxTeams: 16, registeredTeams: 0 },
-    ],
-  },
-];
+const getStoredEvents = async (): Promise<Event[]> => {
+  try {
+    const data = await AsyncStorage.getItem(EVENTS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error(validationStrings.ERROR_GETTING_STORED_EVENTS, error);
+    return [];
+  }
+};
+
+const saveEvents = async (events: Event[]) => {
+  try {
+    await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+  } catch (error) {
+    console.error(validationStrings.ERROR_SAVING_EVENTS, error);
+    throw new Error(validationStrings.FAILED_TO_SAVE_EVENTS);
+  }
+};
 
 export const eventApiService = {
   getEvents: async (): Promise<Event[]> => {
-    return [...events];
+    return getStoredEvents();
   },
 
   getEventById: async (id: string): Promise<Event | undefined> => {
-    return events.find(currentEvent => currentEvent.id === id);
+    const events = await getStoredEvents();
+    return events.find(e => e.id === id);
   },
 
-  createEvent: async (
-    event: Omit<Event, 'id'>
-  ): Promise<Event> => {
+  createEvent: async (event: Omit<Event, 'id'>): Promise<Event> => {
+    const events = await getStoredEvents();
+
     const newEvent: Event = {
       ...event,
-      id: Date.now().toString(),
+      id: `event_${Date.now()}_${Math.random().toString(36).slice(2)}`,
     };
 
-    events.push(newEvent);
+    const updated = [...events, newEvent];
+    await saveEvents(updated);
+
     return newEvent;
   },
 
   updateEvent: async (updatedEvent: Event): Promise<Event> => {
-    events = events.map(currentEvent =>
-      currentEvent.id === updatedEvent.id ? updatedEvent : currentEvent
+    const events = await getStoredEvents();
+    const updatedEvents = events.map(e =>
+      e.id === updatedEvent.id ? updatedEvent : e
     );
+
+    await saveEvents(updatedEvents);
     return updatedEvent;
   },
 
   deleteEvent: async (eventId: string): Promise<void> => {
-    events = events.filter(currentEvent => currentEvent.id !== eventId);
+    const events = await getStoredEvents();
+    await saveEvents(events.filter(e => e.id !== eventId));
   },
 
   registerTeam: async (
     eventId: string,
     format: PlayFormat
   ): Promise<Event> => {
-    const eventFound = events.find(currentEvent => currentEvent.id === eventId);
-    if (!eventFound) throw new Error(validationStrings.EVENT_NOT_EXISTS);
+    const events = await getStoredEvents();
+    const eventFound = events.find(e => e.id === eventId);
 
-    const selectedFormat = eventFound.formats.find(
-      currentFormat => currentFormat.format === format
-    );
-    if (!selectedFormat) throw new Error(validationStrings.FORMAT_FULL);
-
-    if (selectedFormat.registeredTeams >= selectedFormat.maxTeams) {
-      throw new Error(validationStrings.REGISTRATION_FULL);
+    if (!eventFound) {
+      throw new Error(validationStrings.EVENT_NOT_EXISTS);
     }
 
-    selectedFormat.registeredTeams += 1;
+    const selectedFormat = eventFound.availableFormats.find(
+      f => f.format === format && f.isAvailable
+    );
+
+    if (!selectedFormat) {
+      throw new Error(validationStrings.FORMAT_FULL);
+    }
+
+    await saveEvents(events);
     return eventFound;
   },
+
+  unregisterTeam: async (
+    eventId: string,
+    format: PlayFormat
+  ): Promise<Event> => {
+    const events = await getStoredEvents();
+    const eventFound = events.find(e => e.id === eventId);
+
+    if (!eventFound) {
+      throw new Error(validationStrings.EVENT_NOT_EXISTS);
+    }
+
+    const selectedFormat = eventFound.availableFormats.find(
+      f => f.format === format
+    );
+
+    if (!selectedFormat) {
+      throw new Error(validationStrings.FORMAT_NOT_FOUND);
+    }
+
+    await saveEvents(events);
+    return eventFound;
+  },
+
+  isFormatFull: async (
+    eventId: string,
+    format: PlayFormat
+  ): Promise<boolean> => {
+    const event = await eventApiService.getEventById(eventId);
+    if (!event) return true;
+
+    const selectedFormat = event.availableFormats.find(
+      f => f.format === format && f.isAvailable
+    );
+
+    if (!selectedFormat) return true;
+
+    return (
+      selectedFormat.registeredMaleCount >= selectedFormat.maxMaleParticipants ||
+      selectedFormat.registeredFemaleCount >= selectedFormat.maxFemaleParticipants
+    );
+  },
+
+  extendDeadline: async (eventId: string, newDeadline: string): Promise<Event> => {
+    const events = await getStoredEvents();
+    const eventIndex = events.findIndex(e => e.id === eventId);
+
+    if (eventIndex === -1) {
+      throw new Error(validationStrings.EVENT_NOT_EXISTS);
+    }
+
+    events[eventIndex].registrationDeadline = newDeadline;
+    await saveEvents(events);
+    return events[eventIndex];
+  },
+
+  getRegistrationStats: async (
+    eventId: string,
+    format: PlayFormat
+  ): Promise<{
+    maleCount: number;
+    femaleCount: number;
+    maleMax: number;
+    femaleMax: number;
+    malePercentage: number;
+    femalePercentage: number;
+  } | null> => {
+    const event = await eventApiService.getEventById(eventId);
+    if (!event) return null;
+
+    const selectedFormat = event.availableFormats.find(
+      f => f.format === format && f.isAvailable
+    );
+
+    if (!selectedFormat) return null;
+
+    const malePercentage = selectedFormat.maxMaleParticipants > 0
+      ? (selectedFormat.registeredMaleCount / selectedFormat.maxMaleParticipants) * 100
+      : 0;
+
+    const femalePercentage = selectedFormat.maxFemaleParticipants > 0
+      ? (selectedFormat.registeredFemaleCount / selectedFormat.maxFemaleParticipants) * 100
+      : 0;
+
+    return {
+      maleCount: selectedFormat.registeredMaleCount,
+      femaleCount: selectedFormat.registeredFemaleCount,
+      maleMax: selectedFormat.maxMaleParticipants,
+      femaleMax: selectedFormat.maxFemaleParticipants,
+      malePercentage: Math.round(malePercentage),
+      femalePercentage: Math.round(femalePercentage),
+    };
+  },
+
+  getAvailableSpots: async (
+    eventId: string,
+    format: PlayFormat
+  ): Promise<{ male: number; female: number }> => {
+    const event = await eventApiService.getEventById(eventId);
+    if (!event) return { male: 0, female: 0 };
+
+    const selectedFormat = event.availableFormats.find(
+      f => f.format === format && f.isAvailable
+    );
+
+    if (!selectedFormat) return { male: 0, female: 0 };
+
+    return {
+      male: selectedFormat.maxMaleParticipants - selectedFormat.registeredMaleCount,
+      female: selectedFormat.maxFemaleParticipants - selectedFormat.registeredFemaleCount,
+    };
+  },
+};
+
+export const seedEvents = async () => {
+  const initialized = await AsyncStorage.getItem(EVENTS_INITIALIZED_KEY);
+
+  if (!initialized) {
+    await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(defaultEvents));
+    await AsyncStorage.setItem(EVENTS_INITIALIZED_KEY, 'true');
+  }
 };

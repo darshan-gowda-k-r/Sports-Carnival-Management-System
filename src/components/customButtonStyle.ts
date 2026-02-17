@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   disabled: {
-    backgroundColor: Colors.primary  +'80',
+    backgroundColor: Colors.primary  + '80',
   },
 });
 

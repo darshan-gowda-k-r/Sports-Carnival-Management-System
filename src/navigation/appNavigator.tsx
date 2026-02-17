@@ -1,17 +1,30 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
 import LoginScreen from '../screens/authentication/LoginScreen';
 import RegisterScreen from '../screens/authentication/RegisterScreen';
 import AdminHomeScreen from '../screens/admin/AdminHomeScreen';
 import OrganizerHomeScreen from '../screens/organizer/OrganizerHomeScreen';
 import ParticipantHomeScreen from '../screens/participant/ParticipantHomeScreen';
-
 import EventListScreen from '../screens/events/EventListScreen';
 import EventDetailsScreen from '../screens/events/EventDetailsScreen';
 import CreateEventScreen from '../screens/events/CreateEventScreen';
+import FixtureCreationScreen from '../screens/admin/FixtureCreationScreen';
+import ViewFixturesScreen from '../screens/common/ViewFixturesScreen';
 import EditEventScreen from '../screens/events/EditEventScreen';
+import UserManagementScreen from '../screens/admin/UserManagementScreen';
+import TeamManagementScreen from '../screens/admin/TeamManagementScreen';
+import RegisterForEventScreen from '../screens/participant/RegisterForEventScreen';
+
+import IndividualRegistrationScreen from '../screens/participant/IndividualRegistrationScreen';
+import MyRegistrationsScreen from '../screens/participant/MyRegistrationsScreen';
+import ManageRegistrationsScreen from '../screens/admin/ManageRegistrationsScreen';
+import CreateTeamsScreen from '../screens/admin/CreateTeamsScreen';
+import MyMatchesScreen from '../screens/participant/MyMatchesScreen';
+import MyTeamsScreen from '../screens/participant/MyTeamsScreen';
+
+import ReportsScreen from '../screens/admin/ReportsScreen';
+import SystemConfigScreen from '../screens/admin/SystemConfigScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -20,9 +33,19 @@ export type RootStackParamList = {
   OrganizerHome: undefined;
   ParticipantHome: undefined;
   EventList: { role: string };
-  EventDetails: { eventId: number };
-  CreateEvent: undefined;
-  EditEvent: { eventId: number };
+  EventDetails: { event: any; role: string };
+  CreateEvent: { role: string };
+  EditEvent: { event: any };
+  UserManagement: undefined;
+  TeamManagement: { role: string };
+  RegisterForEvent: { event: any };
+
+  IndividualRegistration: { eventId: string; event: any };
+  MyRegistrations: undefined;
+  ManageRegistrations: undefined;
+  CreateTeams: { eventId: string; format: '1v1' | '2v2' };
+  MyMatches: undefined;
+  MyTeams: { role: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -43,9 +66,26 @@ const AppNavigator = () => {
         <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
         <Stack.Screen name="EditEvent" component={EditEventScreen} />
 
+        <Stack.Screen name="UserManagement" component={UserManagementScreen} />
+        <Stack.Screen name="TeamManagement" component={TeamManagementScreen} />
+        <Stack.Screen name="RegisterForEvent" component={RegisterForEventScreen} />
+
+        <Stack.Screen name="Reports" component={ReportsScreen} />
+        <Stack.Screen name="SystemConfig" component={SystemConfigScreen} />
+
+        <Stack.Screen name="FixtureCreation" component={FixtureCreationScreen} />
+        <Stack.Screen name="ViewFixtures" component={ViewFixturesScreen} />
+
+        <Stack.Screen name="IndividualRegistration" component={IndividualRegistrationScreen} />
+        <Stack.Screen name="MyRegistrations" component={MyRegistrationsScreen} />
+        <Stack.Screen name="ManageRegistrations" component={ManageRegistrationsScreen} />
+        <Stack.Screen name="CreateTeams" component={CreateTeamsScreen} />
+        <Stack.Screen name="MyMatches" component={MyMatchesScreen} />
+        <Stack.Screen name="MyTeams" component={MyTeamsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
 
 export default AppNavigator;
+
